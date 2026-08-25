@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- High-Contrast Serif Wordmark: CALC + on Black Background -->
+    <!-- 'C' (1st) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M31.2,46.0c-0.5,-1.6 -1.8,-3.2 -4.0,-3.2c-3.6,0 -6.2,3.6 -6.2,8.8c0,5.2 2.6,8.8 6.2,8.8c2.2,0 3.6,-1.6 4.1,-3.3h-1.2c-0.6,1.4 -1.7,2.2 -2.9,2.2c-2.8,0 -4.2,-3.2 -4.2,-7.7c0,-4.5 1.4,-7.7 4.2,-7.7c1.3,0 2.3,0.8 2.8,2.1H31.2z" />
+
+    <!-- 'A' -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38.8,43.2l-5.2,16.0h-2.0v1.0h4.5v-1.0h-1.5l1.4,-4.4h5.6l1.4,4.4h-1.5v1.0h4.8v-1.0h-2.0l-5.2,-16.0H38.8z M39.1,45.4l2.2,7.2h-4.4L39.1,45.4z" />
+
+    <!-- 'L' -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48.2,43.2h-3.2v1.0h1.4v14.0h-1.4v1.0h9.2v-3.0h-1.0c-0.3,1.4 -1.0,1.8 -2.6,1.8h-3.0V44.2h1.4v-1.0H48.2z" />
+
+    <!-- 'C' (2nd) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M68.2,46.0c-0.5,-1.6 -1.8,-3.2 -4.0,-3.2c-3.6,0 -6.2,3.6 -6.2,8.8c0,5.2 2.6,8.8 6.2,8.8c2.2,0 3.6,-1.6 4.1,-3.3h-1.2c-0.6,1.4 -1.7,2.2 -2.9,2.2c-2.8,0 -4.2,-3.2 -4.2,-7.7c0,-4.5 1.4,-7.7 4.2,-7.7c1.3,0 2.3,0.8 2.8,2.1H68.2z" />
+
+    <!-- '+' Plus Symbol -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M77.5,46.0h2.2v4.2h4.2v2.2h-4.2v4.2h-2.2v-4.2h-4.2v-2.2h4.2V46.0z" />
+
+</vector>

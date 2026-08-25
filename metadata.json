@@ -1,0 +1,8 @@
+{
+  "name": "CALC +",
+  "description": "CALC + is a powerful, customizable calculator featuring 24 unique visual themes, rich scientific and programmer modes, and tactile haptic vibration feedback.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
