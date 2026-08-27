@@ -6,22 +6,37 @@ import android.content.SharedPreferences
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.data.CurrencyRepository
 import com.example.data.local.AppDatabase
 import com.example.data.local.HistoryRepository
+import com.example.domain.AgeCalculatorEngine
+import com.example.domain.BmiCalculatorEngine
 import com.example.domain.CalculatorEngine
+import com.example.domain.EmiCalculatorEngine
+import com.example.domain.GstEngine
 import com.example.domain.ProgrammerEngine
 import com.example.domain.SoundHapticHelper
 import com.example.domain.WordSize
+import com.example.model.AgeProfile
 import com.example.model.AngleMode
 import com.example.model.CalculationHistory
 import com.example.model.CalculatorMode
 import com.example.model.ConversionUnit
+import com.example.model.CurrencyInfo
+import com.example.model.GstCalculationType
+import com.example.model.GstResult
+import com.example.model.GstSlab
 import com.example.model.NumberBase
+import com.example.model.ButtonShapeType
+import com.example.model.DisplayFontType
 import com.example.model.ThemeId
 import com.example.model.ThemePalette
 import com.example.model.UnitCategory
 import com.example.model.UnitConverterData
 import com.example.ui.theme.CalculatorThemes
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,12 +47,18 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.Locale
 import kotlin.random.Random
 
 data class CalculatorUiState(
     val mode: CalculatorMode = CalculatorMode.STANDARD,
-    val currentThemeId: ThemeId = ThemeId.CYBERPUNK,
+    val currentThemeId: ThemeId = ThemeId.MAC_CLASSIC_1984,
+    val customAccentColor: Long? = null,
+    val customShapeType: ButtonShapeType? = null,
+    val customDisplayFont: DisplayFontType? = null,
     val expression: String = "",
     val result: String = "0",
     val previewResult: String? = null,
@@ -56,10 +77,53 @@ data class CalculatorUiState(
     val showHistorySheet: Boolean = false,
     val showModeSelector: Boolean = false,
     val showSettingsSheet: Boolean = false,
+    val showMoreModesSheet: Boolean = false,
+    val showDecimalConverterSheet: Boolean = false,
+    val decimalConverterTarget: String = "0",
     val editingNoteFor: CalculationHistory? = null,
     val historySearchQuery: String = "",
     val historyOnlyFavorites: Boolean = false,
     
+    // GST Calculator State (Casio MJ-120GST inspired)
+    val gstAmountInput: String = "1000",
+    val gstCalculationType: GstCalculationType = GstCalculationType.EXCLUSIVE,
+    val gstSelectedSlabId: Int = 3, // Default to GST+3 (18%)
+    val gstSlabs: List<GstSlab> = GstEngine.DEFAULT_SLABS,
+    val gstCurrentResult: GstResult? = null,
+    val gstGrandTotalGross: Double = 0.0,
+    val gstGrandTotalGst: Double = 0.0,
+    val gstCalculationCount: Int = 0,
+    
+    // Age & Rashi Calculator State
+    val ageBirthDateTime: LocalDateTime = LocalDateTime.of(LocalDate.of(2000, 1, 1), LocalTime.of(9, 0)),
+    val ageTargetDateTime: LocalDateTime = LocalDateTime.now(),
+    val ageCurrentPersonName: String = "My Age",
+    val ageProfileNotes: String = "",
+    val ageSelectedProfile: AgeProfile? = null,
+    
+    // BMI (Body Mass Index) Calculator State
+    val bmiWeightInput: String = "68",
+    val bmiHeightInput: String = "172",
+    val bmiAgeInput: String = "25",
+    val bmiIsMetric: Boolean = true, // kg/cm vs lbs/ft+in
+    val bmiIsMale: Boolean = true,
+    
+    // Live Currency & Indian Rupee (INR) Converter State
+    val currencyFromCode: String = "USD",
+    val currencyToCode: String = "INR",
+    val currencyInput: String = "100",
+    val currencyOutput: String = "8720.00",
+    val isCurrencyLoading: Boolean = false,
+    val currencyStatusText: String = "● Live Forex Rates Active",
+    val currencyIsOnline: Boolean = true,
+    val currencyRatesMap: Map<String, Double> = CurrencyRepository.getRatesMap(),
+    
+    // EMI & Loan Calculator State
+    val emiPrincipalInput: String = "1000000",
+    val emiInterestRateInput: String = "8.5",
+    val emiTenureInput: String = "20",
+    val emiIsTenureInYears: Boolean = true,
+
     // Programmer Mode State
     val progValue: Long = 0L,
     val progInput: String = "0",
@@ -87,6 +151,7 @@ data class CalculatorUiState(
 class CalculatorViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: HistoryRepository
+    private val ageProfileDao = AppDatabase.getDatabase(application).ageProfileDao()
     val soundHapticHelper: SoundHapticHelper = SoundHapticHelper(application)
     private val prefs: SharedPreferences = application.getSharedPreferences("chromacalc_prefs", Context.MODE_PRIVATE)
 
@@ -97,6 +162,8 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
     private val _onlyFavorites = MutableStateFlow(false)
 
     val historyList: StateFlow<List<CalculationHistory>>
+    val ageProfilesList: StateFlow<List<AgeProfile>> = ageProfileDao.getAllProfiles()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         val savedThemeName = prefs.getString("saved_theme_id", null)
@@ -104,19 +171,31 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             try {
                 ThemeId.valueOf(savedThemeName)
             } catch (e: Exception) {
-                ThemeId.CYBERPUNK
+                ThemeId.MAC_CLASSIC_1984
             }
         } else {
-            ThemeId.CYBERPUNK
+            ThemeId.MAC_CLASSIC_1984
         }
         val savedSound = prefs.getBoolean("saved_sound_enabled", true)
         val savedHaptics = prefs.getBoolean("saved_haptics_enabled", true)
+        val savedCustomAccent = if (prefs.contains("custom_accent_color")) prefs.getLong("custom_accent_color", 0L) else null
+        val savedShapeName = prefs.getString("custom_shape_type", null)
+        val savedShape = savedShapeName?.let { try { ButtonShapeType.valueOf(it) } catch (e: Exception) { null } }
+        val savedFontName = prefs.getString("custom_display_font", null)
+        val savedFont = savedFontName?.let { try { DisplayFontType.valueOf(it) } catch (e: Exception) { null } }
+
+        // Initial GST calculation
+        val initialGstRes = GstEngine.calculate(1000.0, 18.0, GstCalculationType.EXCLUSIVE)
 
         _uiState = MutableStateFlow(
             CalculatorUiState(
                 currentThemeId = initialTheme,
+                customAccentColor = savedCustomAccent,
+                customShapeType = savedShape,
+                customDisplayFont = savedFont,
                 isSoundEnabled = savedSound,
-                isHapticsEnabled = savedHaptics
+                isHapticsEnabled = savedHaptics,
+                gstCurrentResult = initialGstRes
             )
         )
         uiState = _uiState.asStateFlow()
@@ -147,6 +226,9 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+        // Initialize Live Forex Rates via real network
+        fetchLiveCurrencyRates()
     }
 
     val currentTheme: ThemePalette
@@ -157,7 +239,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun setTheme(themeId: ThemeId) {
-        prefs.edit().putString("saved_theme_id", themeId.name).commit()
+        prefs.edit().putString("saved_theme_id", themeId.name).apply()
         _uiState.update { it.copy(currentThemeId = themeId) }
     }
 
@@ -229,6 +311,83 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { it.copy(showSettingsSheet = show) }
     }
 
+    fun setShowMoreModesSheet(show: Boolean) {
+        _uiState.update { it.copy(showMoreModesSheet = show) }
+    }
+
+    fun setCustomAccentColor(color: Long?) {
+        if (color != null) {
+            prefs.edit().putLong("custom_accent_color", color).apply()
+        } else {
+            prefs.edit().remove("custom_accent_color").apply()
+        }
+        _uiState.update { it.copy(customAccentColor = color) }
+    }
+
+    fun setCustomShapeType(shape: ButtonShapeType?) {
+        if (shape != null) {
+            prefs.edit().putString("custom_shape_type", shape.name).apply()
+        } else {
+            prefs.edit().remove("custom_shape_type").apply()
+        }
+        _uiState.update { it.copy(customShapeType = shape) }
+    }
+
+    fun setCustomDisplayFont(font: DisplayFontType?) {
+        if (font != null) {
+            prefs.edit().putString("custom_display_font", font.name).apply()
+        } else {
+            prefs.edit().remove("custom_display_font").apply()
+        }
+        _uiState.update { it.copy(customDisplayFont = font) }
+    }
+
+    fun resetAppearanceCustomizations() {
+        prefs.edit()
+            .remove("custom_accent_color")
+            .remove("custom_shape_type")
+            .remove("custom_display_font")
+            .apply()
+        _uiState.update {
+            it.copy(
+                customAccentColor = null,
+                customShapeType = null,
+                customDisplayFont = null
+            )
+        }
+    }
+
+    fun getEffectiveTheme(state: CalculatorUiState): ThemePalette {
+        val base = CalculatorThemes.getThemeById(state.currentThemeId)
+        val customAccent = state.customAccentColor?.let { Color(it.toInt()) }
+        val shape = state.customShapeType ?: base.shapeType
+        val font = state.customDisplayFont ?: base.displayFont
+        val radius = when (state.customShapeType) {
+            ButtonShapeType.PILL -> 24.dp
+            ButtonShapeType.CIRCLE -> 24.dp
+            ButtonShapeType.SQUIRCLE -> 16.dp
+            ButtonShapeType.ROUNDED_SQUARE -> 8.dp
+            ButtonShapeType.BRUTALIST_RECT -> 4.dp
+            null -> base.cornerRadiusDp
+        }
+        return base.copy(
+            accentColor = customAccent ?: base.accentColor,
+            shapeType = shape,
+            displayFont = font,
+            cornerRadiusDp = radius,
+            equalsButtonBrush = if (customAccent != null) {
+                Brush.linearGradient(listOf(customAccent, customAccent.copy(alpha = 0.85f)))
+            } else base.equalsButtonBrush
+        )
+    }
+
+    fun setShowDecimalConverterSheet(show: Boolean, targetValue: String? = null) {
+        _uiState.update {
+            val target = targetValue ?: (if (it.result != "0" && it.result != "Error") it.result else if (it.expression.isNotBlank()) it.expression else "0")
+            it.copy(showDecimalConverterSheet = show, decimalConverterTarget = target)
+        }
+    }
+
     fun setEditingNoteFor(history: CalculationHistory?) {
         _uiState.update { it.copy(editingNoteFor = history) }
     }
@@ -255,7 +414,6 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             val wasEvaluated = state.lastEvaluated
 
             if (wasEvaluated) {
-                // If user enters operator after '=' continue with previous result
                 if ("+−×÷^%".contains(char)) {
                     newExpr = if (newResult != "Error") newResult + char else ""
                 } else {
@@ -299,7 +457,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled)
 
         _uiState.update { state ->
-            var newExpr = if (state.lastEvaluated) constant else state.expression + constant
+            val newExpr = if (state.lastEvaluated) constant else state.expression + constant
             val preview = CalculatorEngine.evaluatePreview(newExpr, state.angleMode)
             state.copy(
                 expression = newExpr,
@@ -383,6 +541,133 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                 lastEvaluated = true
             )
         }
+    }
+
+    // --- GST Calculator Actions (Casio MJ-120GST Style) ---
+
+    fun onGstInputDigit(digit: String, haptics: HapticFeedback? = null) {
+        soundHapticHelper.playClick(_uiState.value.isSoundEnabled)
+        soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled)
+
+        _uiState.update { state ->
+            val cur = state.gstAmountInput
+            val newInput = if (cur == "0" || cur == "1000" && digit != "00") digit else cur + digit
+            val amt = newInput.toDoubleOrNull() ?: 0.0
+            val slab = state.gstSlabs.firstOrNull { it.id == state.gstSelectedSlabId } ?: state.gstSlabs[3]
+            val res = GstEngine.calculate(amt, slab.ratePercent, state.gstCalculationType)
+            state.copy(gstAmountInput = newInput, gstCurrentResult = res)
+        }
+    }
+
+    fun onGstClear(haptics: HapticFeedback? = null) {
+        soundHapticHelper.playClick(_uiState.value.isSoundEnabled, isClear = true)
+        soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled, isHeavy = true)
+        _uiState.update { it.copy(gstAmountInput = "0", gstCurrentResult = null) }
+    }
+
+    fun onGstBackspace(haptics: HapticFeedback? = null) {
+        soundHapticHelper.playClick(_uiState.value.isSoundEnabled, isClear = true)
+        soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled)
+        _uiState.update { state ->
+            val cur = state.gstAmountInput
+            val newInput = if (cur.length > 1) cur.dropLast(1) else "0"
+            val amt = newInput.toDoubleOrNull() ?: 0.0
+            val slab = state.gstSlabs.firstOrNull { it.id == state.gstSelectedSlabId } ?: state.gstSlabs[3]
+            val res = if (amt > 0.0) GstEngine.calculate(amt, slab.ratePercent, state.gstCalculationType) else null
+            state.copy(gstAmountInput = newInput, gstCurrentResult = res)
+        }
+    }
+
+    fun onGstToggleType(haptics: HapticFeedback? = null) {
+        soundHapticHelper.playClick(_uiState.value.isSoundEnabled)
+        soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled)
+        _uiState.update { state ->
+            val nextType = if (state.gstCalculationType == GstCalculationType.EXCLUSIVE) GstCalculationType.INCLUSIVE else GstCalculationType.EXCLUSIVE
+            val amt = state.gstAmountInput.toDoubleOrNull() ?: 0.0
+            val slab = state.gstSlabs.firstOrNull { it.id == state.gstSelectedSlabId } ?: state.gstSlabs[3]
+            val res = GstEngine.calculate(amt, slab.ratePercent, nextType)
+            state.copy(gstCalculationType = nextType, gstCurrentResult = res)
+        }
+    }
+
+    fun onGstSelectSlab(slab: GstSlab, haptics: HapticFeedback? = null) {
+        soundHapticHelper.playClick(_uiState.value.isSoundEnabled)
+        soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled)
+
+        _uiState.update { state ->
+            val amt = state.gstAmountInput.toDoubleOrNull() ?: 0.0
+            val res = GstEngine.calculate(amt, slab.ratePercent, state.gstCalculationType)
+            
+            // Accumulate into Grand Total (GST GT)
+            val newGtGross = state.gstGrandTotalGross + res.grossAmount
+            val newGtGst = state.gstGrandTotalGst + res.gstAmount
+            val newCount = state.gstCalculationCount + 1
+
+            viewModelScope.launch {
+                val label = if (state.gstCalculationType == GstCalculationType.EXCLUSIVE) "GST+ (${slab.label})" else "GST- (${slab.label})"
+                repository.insert(
+                    expression = "$label on ${GstEngine.formatCurrency(amt)}",
+                    result = "Gross: ${GstEngine.formatCurrency(res.grossAmount)} (Tax: ${GstEngine.formatCurrency(res.gstAmount)})",
+                    mode = "GST_TAX"
+                )
+            }
+
+            state.copy(
+                gstSelectedSlabId = slab.id,
+                gstCurrentResult = res,
+                gstGrandTotalGross = newGtGross,
+                gstGrandTotalGst = newGtGst,
+                gstCalculationCount = newCount
+            )
+        }
+    }
+
+    fun onGstClearGrandTotal() {
+        _uiState.update {
+            it.copy(gstGrandTotalGross = 0.0, gstGrandTotalGst = 0.0, gstCalculationCount = 0)
+        }
+    }
+
+    fun onGstUpdateSlabRate(slabId: Int, newRate: Double) {
+        _uiState.update { state ->
+            val updatedList = state.gstSlabs.map { slab ->
+                if (slab.id == slabId) {
+                    slab.copy(ratePercent = newRate, label = "${newRate.toInt()}%")
+                } else slab
+            }
+            val amt = state.gstAmountInput.toDoubleOrNull() ?: 0.0
+            val selectedSlab = updatedList.firstOrNull { it.id == state.gstSelectedSlabId } ?: updatedList[3]
+            val res = GstEngine.calculate(amt, selectedSlab.ratePercent, state.gstCalculationType)
+            state.copy(gstSlabs = updatedList, gstCurrentResult = res)
+        }
+    }
+
+    // --- Age Calculator Actions ---
+
+    fun onAgeUpdateBirthDateTime(dateTime: LocalDateTime) {
+        _uiState.update { it.copy(ageBirthDateTime = dateTime) }
+    }
+
+    fun onAgeUpdateTargetDateTime(dateTime: LocalDateTime) {
+        _uiState.update { it.copy(ageTargetDateTime = dateTime) }
+    }
+
+    // --- EMI & Loan Calculator Actions ---
+
+    fun onEmiPrincipalChange(amount: String) {
+        _uiState.update { it.copy(emiPrincipalInput = amount) }
+    }
+
+    fun onEmiRateChange(rate: String) {
+        _uiState.update { it.copy(emiInterestRateInput = rate) }
+    }
+
+    fun onEmiTenureChange(tenure: String) {
+        _uiState.update { it.copy(emiTenureInput = tenure) }
+    }
+
+    fun onEmiToggleTenureUnit(inYears: Boolean) {
+        _uiState.update { it.copy(emiIsTenureInYears = inYears) }
     }
 
     // --- Memory Operations ---
@@ -693,6 +978,181 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         val perPerson = if (people > 0) total / people else total
         return Triple(tip, total, perPerson)
     }
+
+    // --- Age Calculator & Horoscope (Rashi) Profiles ---
+
+    fun setAgePersonName(name: String) {
+        _uiState.update { it.copy(ageCurrentPersonName = name) }
+    }
+
+    fun setAgeProfileNotes(notes: String) {
+        _uiState.update { it.copy(ageProfileNotes = notes) }
+    }
+
+    fun saveCurrentAgeProfile(name: String, relation: String = "Self", notes: String = "") {
+        viewModelScope.launch {
+            val state = _uiState.value
+            val profile = AgeProfile(
+                name = name.ifBlank { "Profile" },
+                birthYear = state.ageBirthDateTime.year,
+                birthMonth = state.ageBirthDateTime.monthValue,
+                birthDay = state.ageBirthDateTime.dayOfMonth,
+                birthHour = state.ageBirthDateTime.hour,
+                birthMinute = state.ageBirthDateTime.minute,
+                notes = notes,
+                relationship = relation
+            )
+            ageProfileDao.insertProfile(profile)
+            _uiState.update {
+                it.copy(
+                    ageCurrentPersonName = profile.name,
+                    ageProfileNotes = profile.notes,
+                    ageSelectedProfile = profile
+                )
+            }
+        }
+    }
+
+    fun loadAgeProfile(profile: AgeProfile) {
+        val birthDate = LocalDate.of(profile.birthYear, profile.birthMonth, profile.birthDay)
+        val birthTime = LocalTime.of(profile.birthHour, profile.birthMinute)
+        _uiState.update {
+            it.copy(
+                ageBirthDateTime = LocalDateTime.of(birthDate, birthTime),
+                ageCurrentPersonName = profile.name,
+                ageProfileNotes = profile.notes,
+                ageSelectedProfile = profile
+            )
+        }
+    }
+
+    fun deleteAgeProfile(profile: AgeProfile) {
+        viewModelScope.launch {
+            ageProfileDao.deleteProfileById(profile.id)
+            if (_uiState.value.ageSelectedProfile?.id == profile.id) {
+                _uiState.update { it.copy(ageSelectedProfile = null) }
+            }
+        }
+    }
+
+    // --- BMI (Body Mass Index) Calculator Handlers ---
+
+    fun onBmiWeightChange(weight: String) {
+        _uiState.update { it.copy(bmiWeightInput = weight) }
+    }
+
+    fun onBmiHeightChange(height: String) {
+        _uiState.update { it.copy(bmiHeightInput = height) }
+    }
+
+    fun onBmiAgeChange(age: String) {
+        _uiState.update { it.copy(bmiAgeInput = age) }
+    }
+
+    fun onBmiToggleMetric(isMetric: Boolean) {
+        _uiState.update {
+            if (it.bmiIsMetric == isMetric) return@update it
+            if (isMetric) {
+                // Was imperial (lbs, inches), convert to metric (kg, cm)
+                val lbs = it.bmiWeightInput.toDoubleOrNull() ?: 150.0
+                val inches = it.bmiHeightInput.toDoubleOrNull() ?: 68.0
+                val kg = (lbs * 0.45359237).roundToInt()
+                val cm = (inches * 2.54).roundToInt()
+                it.copy(bmiIsMetric = true, bmiWeightInput = kg.toString(), bmiHeightInput = cm.toString())
+            } else {
+                // Was metric (kg, cm), convert to imperial (lbs, inches)
+                val kg = it.bmiWeightInput.toDoubleOrNull() ?: 68.0
+                val cm = it.bmiHeightInput.toDoubleOrNull() ?: 172.0
+                val lbs = (kg * 2.20462).roundToInt()
+                val inches = (cm / 2.54).roundToInt()
+                it.copy(bmiIsMetric = false, bmiWeightInput = lbs.toString(), bmiHeightInput = inches.toString())
+            }
+        }
+    }
+
+    fun onBmiToggleGender(isMale: Boolean) {
+        _uiState.update { it.copy(bmiIsMale = isMale) }
+    }
+
+    // --- Live Real-Time Currency & Indian Rupee (INR) Handlers ---
+
+    fun fetchLiveCurrencyRates() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isCurrencyLoading = true) }
+            val result = CurrencyRepository.fetchLiveRates()
+            if (result.isSuccess) {
+                val rates = result.getOrNull() ?: CurrencyRepository.getRatesMap()
+                _uiState.update { state ->
+                    val converted = calculateForexConversion(state.currencyInput, state.currencyFromCode, state.currencyToCode)
+                    state.copy(
+                        isCurrencyLoading = false,
+                        currencyRatesMap = rates,
+                        currencyOutput = converted,
+                        currencyStatusText = CurrencyRepository.lastUpdatedText,
+                        currencyIsOnline = CurrencyRepository.isLiveOnline
+                    )
+                }
+            } else {
+                _uiState.update { state ->
+                    val converted = calculateForexConversion(state.currencyInput, state.currencyFromCode, state.currencyToCode)
+                    state.copy(
+                        isCurrencyLoading = false,
+                        currencyOutput = converted,
+                        currencyStatusText = "Offline Mode • Standard Forex Rates",
+                        currencyIsOnline = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun onCurrencyInputChange(amount: String) {
+        _uiState.update {
+            val converted = calculateForexConversion(amount, it.currencyFromCode, it.currencyToCode)
+            it.copy(currencyInput = amount, currencyOutput = converted)
+        }
+    }
+
+    fun setCurrencyFrom(code: String) {
+        _uiState.update {
+            val converted = calculateForexConversion(it.currencyInput, code, it.currencyToCode)
+            it.copy(currencyFromCode = code, currencyOutput = converted)
+        }
+    }
+
+    fun setCurrencyTo(code: String) {
+        _uiState.update {
+            val converted = calculateForexConversion(it.currencyInput, it.currencyFromCode, code)
+            it.copy(currencyToCode = code, currencyOutput = converted)
+        }
+    }
+
+    fun swapCurrencies() {
+        _uiState.update {
+            val from = it.currencyFromCode
+            val to = it.currencyToCode
+            val converted = calculateForexConversion(it.currencyInput, to, from)
+            it.copy(currencyFromCode = to, currencyToCode = from, currencyOutput = converted)
+        }
+    }
+
+    fun setQuickInrAmount(inrAmount: Double) {
+        val df = DecimalFormat("#.##", DecimalFormatSymbols(Locale.US))
+        val amountStr = df.format(inrAmount)
+        _uiState.update {
+            val converted = calculateForexConversion(amountStr, "INR", it.currencyToCode)
+            it.copy(currencyFromCode = "INR", currencyInput = amountStr, currencyOutput = converted)
+        }
+    }
+
+    private fun calculateForexConversion(amountStr: String, from: String, to: String): String {
+        val amount = amountStr.toDoubleOrNull() ?: return "0.00"
+        val converted = CurrencyRepository.convert(amount, from, to)
+        val df = DecimalFormat("#,##0.00##", DecimalFormatSymbols(Locale.US))
+        return df.format(converted)
+    }
+
+    private fun Double.roundToInt(): Int = kotlin.math.round(this).toInt()
 
     override fun onCleared() {
         super.onCleared()

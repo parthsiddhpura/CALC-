@@ -2,10 +2,16 @@ package com.example.model
 
 enum class CalculatorMode(val title: String, val shortName: String) {
     STANDARD("Standard", "Basic"),
+    GST_CALCULATOR("GST Calc", "GST"),
+    CURRENCY_CONVERTER("Currency & ₹", "Forex"),
     SCIENTIFIC("Scientific", "Sci"),
+    AGE_CALCULATOR("Age & Rashi", "Age"),
+    BMI_CALCULATOR("BMI Health", "BMI"),
+    EMI_LOAN("EMI / Loan", "EMI"),
     PROGRAMMER("Programmer", "Prog"),
     UNIT_CONVERTER("Unit Converter", "Convert"),
-    TIP_SPLIT("Tip & Split", "Tip")
+    TIP_SPLIT("Tip & Split", "Tip"),
+    ENGINEERING("Engineering", "Eng")
 }
 
 enum class AngleMode {

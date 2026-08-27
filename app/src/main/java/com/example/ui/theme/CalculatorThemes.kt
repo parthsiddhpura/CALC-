@@ -735,6 +735,53 @@ object CalculatorThemes {
         statusBarDarkIcons = true
     )
 
+    val MacClassic1984Dark = ThemePalette(
+        id = ThemeId.MAC_CLASSIC_1984_DARK,
+        name = "Macintosh 1984 Dark",
+        subtitle = "Classic desktop GUI inverted dark monochrome",
+        category = "Retro",
+        isDark = true,
+        backgroundBrush = Brush.verticalGradient(
+            colors = listOf(Color(0xFF1A1A1A), Color(0xFF101010))
+        ),
+        backgroundColor = Color(0xFF141414),
+        surfaceColor = Color(0xFF242424),
+        cardBackground = Color(0xFF1E1E1E),
+        screenBackground = Color(0xFF0D0D0D),
+        screenBorderColor = Color(0xFFCCCCCC),
+        screenTextColor = Color(0xFFFFFFFF),
+        screenExpressionColor = Color(0xFFAAAAAA),
+        screenPreviewColor = Color(0xFFDDDDDD),
+        cursorColor = Color(0xFFFFFFFF),
+        displayFont = DisplayFontType.MONOSPACE,
+        hasScanlines = false,
+        numberButtonBg = Color(0xFF222222),
+        numberButtonText = Color(0xFFFFFFFF),
+        numberButtonBorder = Color(0xFF555555),
+        operatorButtonBg = Color(0xFF2D2D2D),
+        operatorButtonText = Color(0xFFFFFFFF),
+        operatorButtonBorder = Color(0xFF777777),
+        functionButtonBg = Color(0xFF282828),
+        functionButtonText = Color(0xFFE5E5E5),
+        functionButtonBorder = Color(0xFF666666),
+        equalsButtonBrush = Brush.linearGradient(
+            colors = listOf(Color(0xFFFFFFFF), Color(0xFFE5E5E5))
+        ),
+        equalsButtonText = Color(0xFF000000),
+        equalsButtonBorder = Color(0xFFFFFFFF),
+        accentColor = Color(0xFFFFFFFF),
+        secondaryAccent = Color(0xFFBBBBBB),
+        glowColor = Color(0x33FFFFFF),
+        shapeType = ButtonShapeType.ROUNDED_SQUARE,
+        cornerRadiusDp = 5.dp,
+        borderWidthDp = 1.5.dp,
+        hasShadow = false,
+        isBrutalistShadow = true,
+        brutalistShadowColor = Color(0xFF000000),
+        pressAnimation = PressAnimationType.BRUTAL_OFFSET,
+        statusBarDarkIcons = false
+    )
+
     val Vaporwave95 = ThemePalette(
         id = ThemeId.VAPORWAVE_95,
         name = "Vaporwave 95",
@@ -1112,6 +1159,7 @@ object CalculatorThemes {
         MatrixHacker,
         AmethystRoyal,
         MacClassic1984,
+        MacClassic1984Dark,
         Vaporwave95,
         EspressoRoast,
         LavaMagma,

@@ -105,9 +105,10 @@ fun UnitConverterView(
         Surface(
             color = theme.surfaceColor,
             shape = RoundedCornerShape(16.dp),
+            border = if (theme.borderWidthDp > 0.dp) androidx.compose.foundation.BorderStroke(theme.borderWidthDp, theme.screenBorderColor.copy(alpha = 0.5f)) else null,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -116,7 +117,7 @@ fun UnitConverterView(
                     Text(
                         text = "FROM",
                         color = theme.screenExpressionColor,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
                     )
@@ -129,12 +130,12 @@ fun UnitConverterView(
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(theme.cardBackground)
                                 .clickable { showFromMenu = true }
-                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                                .padding(horizontal = 12.dp, vertical = 7.dp)
                         ) {
                             Text(
                                 text = "${fromUnit.name} (${fromUnit.symbol})",
                                 color = theme.accentColor,
-                                fontSize = 13.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Icon(
@@ -168,12 +169,12 @@ fun UnitConverterView(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
                     text = inputValue.ifEmpty { "0" },
                     color = theme.screenTextColor,
-                    fontSize = 32.sp,
+                    fontSize = 38.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
                     maxLines = 1
@@ -204,9 +205,10 @@ fun UnitConverterView(
         Surface(
             color = theme.surfaceColor,
             shape = RoundedCornerShape(16.dp),
+            border = if (theme.borderWidthDp > 0.dp) androidx.compose.foundation.BorderStroke(theme.borderWidthDp, theme.screenBorderColor.copy(alpha = 0.5f)) else null,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(14.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -215,7 +217,7 @@ fun UnitConverterView(
                     Text(
                         text = "TO (RESULT)",
                         color = theme.screenExpressionColor,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
                     )
@@ -228,12 +230,12 @@ fun UnitConverterView(
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(theme.cardBackground)
                                 .clickable { showToMenu = true }
-                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                                .padding(horizontal = 12.dp, vertical = 7.dp)
                         ) {
                             Text(
                                 text = "${toUnit.name} (${toUnit.symbol})",
                                 color = theme.secondaryAccent,
-                                fontSize = 13.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Icon(
@@ -267,12 +269,12 @@ fun UnitConverterView(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
                     text = outputValue.ifEmpty { "0" },
                     color = theme.secondaryAccent,
-                    fontSize = 32.sp,
+                    fontSize = 38.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
                     maxLines = 1
@@ -456,14 +458,14 @@ fun TipSplitterView(
                 // Per Person Big Callout
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "PER PERSON SHARE",
+                        text = "PER PERSON SHARE (₹)",
                         color = theme.screenExpressionColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
                     )
                     Text(
-                        text = "$${String.format(Locale.US, "%.2f", perPersonAmount)}",
+                        text = "₹${String.format(Locale.US, "%.2f", perPersonAmount)}",
                         color = theme.accentColor,
                         fontSize = 38.sp,
                         fontWeight = FontWeight.ExtraBold,
@@ -490,7 +492,7 @@ fun TipSplitterView(
                             fontSize = 12.sp
                         )
                         Text(
-                            text = "$${String.format(Locale.US, "%.2f", tipAmount)}",
+                            text = "₹${String.format(Locale.US, "%.2f", tipAmount)}",
                             color = theme.screenTextColor,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
@@ -505,7 +507,7 @@ fun TipSplitterView(
                             fontSize = 12.sp
                         )
                         Text(
-                            text = "$${String.format(Locale.US, "%.2f", totalAmount)}",
+                            text = "₹${String.format(Locale.US, "%.2f", totalAmount)}",
                             color = theme.secondaryAccent,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
@@ -524,7 +526,7 @@ fun TipSplitterView(
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text(
-                    text = "BILL AMOUNT ($)",
+                    text = "BILL AMOUNT (₹)",
                     color = theme.screenExpressionColor,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -532,7 +534,7 @@ fun TipSplitterView(
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = billInput.ifEmpty { "0.00" },
+                    text = if (billInput.isNotEmpty()) "₹$billInput" else "₹0.00",
                     color = theme.screenTextColor,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,

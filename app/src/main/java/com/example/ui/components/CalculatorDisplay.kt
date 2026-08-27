@@ -11,6 +11,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -18,15 +19,24 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Transform
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,7 +45,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +70,9 @@ fun CalculatorDisplay(
     angleMode: AngleMode,
     hasMemory: Boolean,
     mode: CalculatorMode,
+    historyCount: Int = 0,
+    onOpenHistory: (() -> Unit)? = null,
+    onOpenDecimalConverter: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -79,7 +91,7 @@ fun CalculatorDisplay(
         DisplayFontType.ROUNDED -> FontFamily.SansSerif
     }
 
-    val screenShape = RoundedCornerShape(theme.cornerRadiusDp.coerceAtLeast(12.dp))
+    val screenShape = RoundedCornerShape(theme.cornerRadiusDp.coerceAtLeast(14.dp))
 
     Box(
         modifier = modifier
@@ -101,7 +113,7 @@ fun CalculatorDisplay(
                     Toast.makeText(context, "Copied: $textToCopy", Toast.LENGTH_SHORT).show()
                 }
             )
-            .padding(16.dp)
+            .padding(14.dp)
             .testTag("calculator_display")
     ) {
         // CRT Scanline Overlay if enabled
@@ -122,10 +134,10 @@ fun CalculatorDisplay(
         }
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Top Status Badges Row
+            // Top Status & Actions Row: Mode, Angle, Decimal Converter Button, History Icon
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -150,7 +162,7 @@ fun CalculatorDisplay(
                         )
                     }
 
-                    // Angle Mode Badge (DEG / RAD) for standard & scientific
+                    // Angle Mode Badge (DEG / RAD)
                     if (mode == CalculatorMode.STANDARD || mode == CalculatorMode.SCIENTIFIC) {
                         Surface(
                             color = theme.secondaryAccent.copy(alpha = 0.15f),
@@ -185,18 +197,80 @@ fun CalculatorDisplay(
                     }
                 }
 
-                // Copy hint icon
-                Icon(
-                    imageVector = Icons.Default.ContentCopy,
-                    contentDescription = "Hold to copy result",
-                    tint = theme.screenExpressionColor.copy(alpha = 0.5f),
-                    modifier = Modifier
-                        .height(14.dp)
-                        .width(14.dp)
-                )
+                // Right Actions: Decimal Converter (F↔D / DEC) and History Icon
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    // Decimal Conversion Quick Pill Button
+                    if (onOpenDecimalConverter != null) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = theme.surfaceColor,
+                            modifier = Modifier
+                                .clickable { onOpenDecimalConverter() }
+                                .testTag("btn_display_decimal_conv")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Transform,
+                                    contentDescription = "Decimal Conversion",
+                                    tint = theme.accentColor,
+                                    modifier = Modifier.size(13.dp)
+                                )
+                                Text(
+                                    text = "F↔D",
+                                    color = theme.accentColor,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+
+                    // History Tape Button (relocated here seamlessly)
+                    if (onOpenHistory != null) {
+                        Surface(
+                            shape = CircleShape,
+                            color = theme.surfaceColor,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .clickable { onOpenHistory() }
+                                .testTag("btn_display_history")
+                        ) {
+                            BadgedBox(
+                                badge = {
+                                    if (historyCount > 0) {
+                                        Badge(
+                                            containerColor = theme.secondaryAccent,
+                                            contentColor = theme.backgroundColor
+                                        ) {
+                                            Text(
+                                                text = "${historyCount.coerceAtMost(99)}",
+                                                fontSize = 8.sp
+                                            )
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.padding(5.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.History,
+                                    contentDescription = "History",
+                                    tint = theme.screenTextColor,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Expression Row (with horizontal scroll)
             Box(
@@ -208,7 +282,7 @@ fun CalculatorDisplay(
                 Text(
                     text = if (expression.isEmpty()) "0" else expression,
                     color = if (expression.isEmpty()) theme.screenExpressionColor.copy(alpha = 0.4f) else theme.screenExpressionColor,
-                    fontSize = 20.sp,
+                    fontSize = 24.sp,
                     fontFamily = fontFamily,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.End,
@@ -217,7 +291,7 @@ fun CalculatorDisplay(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Main Result Row + Live Preview Result
             Column(
@@ -234,7 +308,7 @@ fun CalculatorDisplay(
                         Text(
                             text = "= $previewResult",
                             color = theme.screenPreviewColor,
-                            fontSize = 18.sp,
+                            fontSize = 20.sp,
                             fontFamily = fontFamily,
                             fontWeight = FontWeight.SemiBold,
                             textAlign = TextAlign.End,
@@ -249,10 +323,10 @@ fun CalculatorDisplay(
 
                 // Main Result
                 val resultFontSize = when {
-                    result.length > 14 -> 28.sp
-                    result.length > 10 -> 34.sp
-                    result.length > 7 -> 40.sp
-                    else -> 46.sp
+                    result.length > 14 -> 32.sp
+                    result.length > 10 -> 40.sp
+                    result.length > 7 -> 48.sp
+                    else -> 56.sp
                 }
 
                 Text(

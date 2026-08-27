@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.model.AgeProfile
 import com.example.model.CalculationHistory
 
-@Database(entities = [CalculationHistory::class], version = 1, exportSchema = false)
+@Database(entities = [CalculationHistory::class, AgeProfile::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun historyDao(): HistoryDao
+    abstract fun ageProfileDao(): AgeProfileDao
 
     companion object {
         @Volatile

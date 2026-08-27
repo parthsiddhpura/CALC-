@@ -18,19 +18,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Calculate
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,24 +38,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.model.CalculatorMode
+import com.example.ui.components.AgeCalculatorView
+import com.example.ui.components.BmiCalculatorView
 import com.example.ui.components.CalculatorDisplay
+import com.example.ui.components.DecimalConverterSheet
 import com.example.ui.components.EditNoteDialog
+import com.example.ui.components.EmiCalculatorView
+import com.example.ui.components.EngineeringCalculatorView
+import com.example.ui.components.GstCalculatorView
 import com.example.ui.components.HistorySheet
+import com.example.ui.components.MoreModesSheet
 import com.example.ui.components.ProgrammerKeypad
-import com.example.ui.components.QuickThemeSwitcher
+import com.example.ui.components.RealCurrencyConverterView
 import com.example.ui.components.ScientificKeypad
+import com.example.ui.components.SettingsSheet
 import com.example.ui.components.StandardKeypad
-import com.example.ui.components.ThemePickerSheet
 import com.example.ui.components.TipSplitterView
 import com.example.ui.components.UnitConverterView
-import com.example.ui.theme.CalculatorThemes
 import com.example.ui.viewmodel.CalculatorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,13 +71,16 @@ fun CalculatorScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val historyList by viewModel.historyList.collectAsStateWithLifecycle()
-    val theme = remember(uiState.currentThemeId) {
-        CalculatorThemes.getThemeById(uiState.currentThemeId)
+    val ageProfiles by viewModel.ageProfilesList.collectAsStateWithLifecycle()
+    val theme = remember(uiState) {
+        viewModel.getEffectiveTheme(uiState)
     }
     val haptics = LocalHapticFeedback.current
 
-    val themeSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val settingsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val moreModesSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val historySheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val decimalSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -100,7 +100,7 @@ fun CalculatorScreen(
                     .align(Alignment.Center),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // Top App Header
+                // Clean Minimal Top Header Bar (No clutter, No shuffle, Single Settings Access)
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier
@@ -109,141 +109,130 @@ fun CalculatorScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Title & Theme Indicator
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
-                                .clickable { viewModel.setShowThemeSheet(true) }
-                                .padding(horizontal = 6.dp, vertical = 4.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(theme.accentColor),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Calculate,
-                                    contentDescription = null,
-                                    tint = theme.backgroundColor,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
+                            Surface(
+                                shape = CircleShape,
+                                color = theme.accentColor,
+                                modifier = Modifier.size(10.dp)
+                            ) {}
 
-                            Column {
+                            Text(
+                                text = "CALC +",
+                                color = theme.screenTextColor,
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = theme.surfaceColor
+                            ) {
                                 Text(
-                                    text = "CALC +",
-                                    color = theme.screenTextColor,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Black
-                                )
-                                Text(
-                                    text = "Theme: ${theme.name}",
-                                    color = theme.accentColor,
+                                    text = theme.name,
+                                    color = theme.screenExpressionColor,
                                     fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
                             }
                         }
 
-                        // Action Icons: Theme Selector & History
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        // Settings Icon Button
+                        IconButton(
+                            onClick = { viewModel.setShowSettingsSheet(true) },
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(theme.surfaceColor)
+                                .size(36.dp)
+                                .testTag("btn_settings")
                         ) {
-                            // Theme Gallery Button
-                            IconButton(
-                                onClick = { viewModel.setShowThemeSheet(true) },
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(theme.surfaceColor)
-                                    .testTag("btn_open_theme_picker")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Palette,
-                                    contentDescription = "Change Theme",
-                                    tint = theme.accentColor,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-
-                            // History Tape Button
-                            IconButton(
-                                onClick = { viewModel.setShowHistorySheet(true) },
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(theme.surfaceColor)
-                                    .testTag("btn_open_history")
-                            ) {
-                                BadgedBox(
-                                    badge = {
-                                        if (historyList.isNotEmpty()) {
-                                            Badge(
-                                                containerColor = theme.secondaryAccent,
-                                                contentColor = theme.backgroundColor
-                                            ) {
-                                                Text(
-                                                    text = "${historyList.size.coerceAtMost(99)}",
-                                                    fontSize = 9.sp
-                                                )
-                                            }
-                                        }
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.History,
-                                        contentDescription = "View History",
-                                        tint = theme.screenTextColor,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                            }
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Settings & Appearance",
+                                tint = theme.screenTextColor,
+                                modifier = Modifier.size(18.dp)
+                            )
                         }
                     }
 
-                    // Quick Theme Switcher Bar
-                    QuickThemeSwitcher(
-                        activeTheme = theme,
-                        onSelectTheme = { viewModel.setTheme(it) },
-                        onNextTheme = { viewModel.cycleNextTheme() },
-                        onPrevTheme = { viewModel.cyclePrevTheme() },
-                        onRandomTheme = { viewModel.randomizeTheme() },
-                        onOpenFullGallery = { viewModel.setShowThemeSheet(true) },
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
+                    Spacer(modifier = Modifier.height(6.dp))
 
-                    // Mode Switcher Tabs
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
+                    // Reorganized Navigation: 3 Main Buttons (Standard, GST Calc, Scientific) + "More" Button
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(CalculatorMode.entries.toTypedArray(), key = { it.name }) { modeItem ->
-                            val isSelected = modeItem == uiState.mode
+                        val mainModes = listOf(
+                            Pair(CalculatorMode.STANDARD, "Standard"),
+                            Pair(CalculatorMode.GST_CALCULATOR, "GST Calc"),
+                            Pair(CalculatorMode.SCIENTIFIC, "Scientific")
+                        )
+
+                        mainModes.forEach { (modeItem, label) ->
+                            val isSelected = uiState.mode == modeItem
                             Surface(
                                 color = if (isSelected) theme.accentColor else theme.surfaceColor,
-                                shape = RoundedCornerShape(10.dp),
+                                shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier
+                                    .weight(1f)
                                     .clickable { viewModel.setMode(modeItem) }
                                     .testTag("tab_mode_${modeItem.name.lowercase()}")
                             ) {
                                 Text(
-                                    text = modeItem.title,
-                                    color = if (isSelected) theme.backgroundColor else theme.screenExpressionColor,
-                                    fontSize = 12.sp,
+                                    text = label,
+                                    color = if (isSelected) theme.backgroundColor else theme.screenTextColor,
+                                    fontSize = 13.sp,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                        }
+
+                        // "More" Button (with active mode indicator if a secondary mode is selected)
+                        val isMoreSelected = uiState.mode !in listOf(
+                            CalculatorMode.STANDARD,
+                            CalculatorMode.GST_CALCULATOR,
+                            CalculatorMode.SCIENTIFIC
+                        )
+
+                        Surface(
+                            color = if (isMoreSelected) theme.accentColor else theme.surfaceColor,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { viewModel.setShowMoreModesSheet(true) }
+                                .testTag("tab_mode_more")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = if (isMoreSelected) uiState.mode.shortName else "More",
+                                    color = if (isMoreSelected) theme.backgroundColor else theme.screenTextColor,
+                                    fontSize = 13.sp,
+                                    fontWeight = if (isMoreSelected) FontWeight.Bold else FontWeight.Medium
+                                )
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Icon(
+                                    imageVector = Icons.Default.MoreHoriz,
+                                    contentDescription = "More modes",
+                                    tint = if (isMoreSelected) theme.backgroundColor else theme.screenTextColor,
+                                    modifier = Modifier.size(16.dp)
                                 )
                             }
                         }
                     }
                 }
 
-                // Middle Content & Screen Display
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Middle Content & Screen Display (Expands to fill available space)
                 AnimatedContent(
                     targetState = uiState.mode,
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
@@ -268,7 +257,12 @@ fun CalculatorScreen(
                                         angleMode = uiState.angleMode,
                                         hasMemory = uiState.hasMemory,
                                         mode = uiState.mode,
-                                        modifier = Modifier.padding(vertical = 4.dp)
+                                        historyCount = historyList.size,
+                                        onOpenHistory = { viewModel.setShowHistorySheet(true) },
+                                        onOpenDecimalConverter = { viewModel.setShowDecimalConverterSheet(true) },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(bottom = 8.dp)
                                     )
 
                                     StandardKeypad(
@@ -278,9 +272,31 @@ fun CalculatorScreen(
                                         onBackspace = { viewModel.onBackspace(haptics) },
                                         onNegate = { viewModel.onNegate(haptics) },
                                         onEquals = { viewModel.onEquals(haptics) },
-                                        modifier = Modifier.padding(bottom = 6.dp)
+                                        modifier = Modifier.padding(bottom = 4.dp)
                                     )
                                 }
+                            }
+
+                            CalculatorMode.GST_CALCULATOR -> {
+                                GstCalculatorView(
+                                    theme = theme,
+                                    amountInput = uiState.gstAmountInput,
+                                    calculationType = uiState.gstCalculationType,
+                                    selectedSlabId = uiState.gstSelectedSlabId,
+                                    slabs = uiState.gstSlabs,
+                                    currentResult = uiState.gstCurrentResult,
+                                    grandTotalGross = uiState.gstGrandTotalGross,
+                                    grandTotalGst = uiState.gstGrandTotalGst,
+                                    calculationCount = uiState.gstCalculationCount,
+                                    onInputDigit = { viewModel.onGstInputDigit(it, haptics) },
+                                    onClear = { viewModel.onGstClear(haptics) },
+                                    onBackspace = { viewModel.onGstBackspace(haptics) },
+                                    onToggleType = { viewModel.onGstToggleType(haptics) },
+                                    onSelectSlab = { viewModel.onGstSelectSlab(it, haptics) },
+                                    onClearGrandTotal = { viewModel.onGstClearGrandTotal() },
+                                    onUpdateSlabRate = { id, rate -> viewModel.onGstUpdateSlabRate(id, rate) },
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
                             }
 
                             CalculatorMode.SCIENTIFIC -> {
@@ -296,7 +312,12 @@ fun CalculatorScreen(
                                         angleMode = uiState.angleMode,
                                         hasMemory = uiState.hasMemory,
                                         mode = uiState.mode,
-                                        modifier = Modifier.padding(vertical = 4.dp)
+                                        historyCount = historyList.size,
+                                        onOpenHistory = { viewModel.setShowHistorySheet(true) },
+                                        onOpenDecimalConverter = { viewModel.setShowDecimalConverterSheet(true) },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(bottom = 6.dp)
                                     )
 
                                     ScientificKeypad(
@@ -321,6 +342,79 @@ fun CalculatorScreen(
                                 }
                             }
 
+                            CalculatorMode.AGE_CALCULATOR -> {
+                                AgeCalculatorView(
+                                    theme = theme,
+                                    birthDateTime = uiState.ageBirthDateTime,
+                                    targetDateTime = uiState.ageTargetDateTime,
+                                    currentPersonName = uiState.ageCurrentPersonName,
+                                    notes = uiState.ageProfileNotes,
+                                    savedProfiles = ageProfiles,
+                                    selectedProfile = uiState.ageSelectedProfile,
+                                    onUpdateBirthDateTime = { viewModel.onAgeUpdateBirthDateTime(it) },
+                                    onUpdateTargetDateTime = { viewModel.onAgeUpdateTargetDateTime(it) },
+                                    onPersonNameChange = { viewModel.setAgePersonName(it) },
+                                    onNotesChange = { viewModel.setAgeProfileNotes(it) },
+                                    onSaveProfile = { name, rel, notes -> viewModel.saveCurrentAgeProfile(name, rel, notes) },
+                                    onLoadProfile = { viewModel.loadAgeProfile(it) },
+                                    onDeleteProfile = { viewModel.deleteAgeProfile(it) },
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+
+                            CalculatorMode.BMI_CALCULATOR -> {
+                                BmiCalculatorView(
+                                    theme = theme,
+                                    weightInput = uiState.bmiWeightInput,
+                                    heightInput = uiState.bmiHeightInput,
+                                    ageInput = uiState.bmiAgeInput,
+                                    isMetric = uiState.bmiIsMetric,
+                                    isMale = uiState.bmiIsMale,
+                                    onWeightChange = { viewModel.onBmiWeightChange(it) },
+                                    onHeightChange = { viewModel.onBmiHeightChange(it) },
+                                    onAgeChange = { viewModel.onBmiAgeChange(it) },
+                                    onToggleMetric = { viewModel.onBmiToggleMetric(it) },
+                                    onToggleGender = { viewModel.onBmiToggleGender(it) },
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+
+                            CalculatorMode.CURRENCY_CONVERTER -> {
+                                RealCurrencyConverterView(
+                                    theme = theme,
+                                    fromCode = uiState.currencyFromCode,
+                                    toCode = uiState.currencyToCode,
+                                    inputAmount = uiState.currencyInput,
+                                    outputAmount = uiState.currencyOutput,
+                                    isLoading = uiState.isCurrencyLoading,
+                                    statusText = uiState.currencyStatusText,
+                                    isOnline = uiState.currencyIsOnline,
+                                    ratesMap = uiState.currencyRatesMap,
+                                    onAmountChange = { viewModel.onCurrencyInputChange(it) },
+                                    onFromChange = { viewModel.setCurrencyFrom(it) },
+                                    onToChange = { viewModel.setCurrencyTo(it) },
+                                    onSwap = { viewModel.swapCurrencies() },
+                                    onQuickInrAmount = { viewModel.setQuickInrAmount(it) },
+                                    onRefreshRates = { viewModel.fetchLiveCurrencyRates() },
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+
+                            CalculatorMode.EMI_LOAN -> {
+                                EmiCalculatorView(
+                                    theme = theme,
+                                    principalInput = uiState.emiPrincipalInput,
+                                    interestRateInput = uiState.emiInterestRateInput,
+                                    tenureYearsInput = uiState.emiTenureInput,
+                                    isTenureInYears = uiState.emiIsTenureInYears,
+                                    onPrincipalChange = { viewModel.onEmiPrincipalChange(it) },
+                                    onRateChange = { viewModel.onEmiRateChange(it) },
+                                    onTenureChange = { viewModel.onEmiTenureChange(it) },
+                                    onToggleTenureUnit = { viewModel.onEmiToggleTenureUnit(it) },
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+
                             CalculatorMode.PROGRAMMER -> {
                                 Column(
                                     modifier = Modifier.fillMaxSize(),
@@ -334,7 +428,12 @@ fun CalculatorScreen(
                                         angleMode = uiState.angleMode,
                                         hasMemory = false,
                                         mode = uiState.mode,
-                                        modifier = Modifier.padding(vertical = 4.dp)
+                                        historyCount = historyList.size,
+                                        onOpenHistory = { viewModel.setShowHistorySheet(true) },
+                                        onOpenDecimalConverter = { viewModel.setShowDecimalConverterSheet(true) },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(bottom = 6.dp)
                                     )
 
                                     ProgrammerKeypad(
@@ -350,7 +449,7 @@ fun CalculatorScreen(
                                         onClear = { viewModel.onProgClear(haptics) },
                                         onBackspace = { viewModel.onProgBackspace(haptics) },
                                         onEquals = { viewModel.onProgEquals(haptics) },
-                                        modifier = Modifier.padding(bottom = 6.dp)
+                                        modifier = Modifier.padding(bottom = 4.dp)
                                     )
                                 }
                             }
@@ -387,24 +486,48 @@ fun CalculatorScreen(
                                     modifier = Modifier.padding(vertical = 4.dp)
                                 )
                             }
+
+                            CalculatorMode.ENGINEERING -> {
+                                EngineeringCalculatorView(
+                                    theme = theme,
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
                         }
                     }
                 }
             }
         }
 
-        // Theme Gallery Bottom Sheet
-        if (uiState.showThemeSheet) {
-            ThemePickerSheet(
+        // Settings & Appearance Bottom Sheet
+        if (uiState.showSettingsSheet) {
+            SettingsSheet(
                 activeTheme = theme,
                 onSelectTheme = { viewModel.setTheme(it) },
-                onRandomTheme = { viewModel.randomizeTheme() },
+                customAccentColor = uiState.customAccentColor,
+                onSelectAccentColor = { viewModel.setCustomAccentColor(it) },
+                customShapeType = uiState.customShapeType,
+                onSelectShapeType = { viewModel.setCustomShapeType(it) },
+                customDisplayFont = uiState.customDisplayFont,
+                onSelectDisplayFont = { viewModel.setCustomDisplayFont(it) },
                 isSoundEnabled = uiState.isSoundEnabled,
                 onToggleSound = { viewModel.toggleSound() },
                 isHapticsEnabled = uiState.isHapticsEnabled,
                 onToggleHaptics = { viewModel.toggleHaptics() },
-                onDismiss = { viewModel.setShowThemeSheet(false) },
-                sheetState = themeSheetState
+                onResetAppearance = { viewModel.resetAppearanceCustomizations() },
+                onDismiss = { viewModel.setShowSettingsSheet(false) },
+                sheetState = settingsSheetState
+            )
+        }
+
+        // More Calculators & Tools Sheet
+        if (uiState.showMoreModesSheet) {
+            MoreModesSheet(
+                activeMode = uiState.mode,
+                theme = theme,
+                onSelectMode = { viewModel.setMode(it) },
+                onDismiss = { viewModel.setShowMoreModesSheet(false) },
+                sheetState = moreModesSheetState
             )
         }
 
@@ -424,6 +547,19 @@ fun CalculatorScreen(
                 onClearAll = { viewModel.clearAllHistory() },
                 onDismiss = { viewModel.setShowHistorySheet(false) },
                 sheetState = historySheetState
+            )
+        }
+
+        // Decimal Conversion Modal Bottom Sheet
+        if (uiState.showDecimalConverterSheet) {
+            DecimalConverterSheet(
+                targetValue = uiState.decimalConverterTarget,
+                theme = theme,
+                onUseValue = { selectedVal ->
+                    viewModel.setShowDecimalConverterSheet(false)
+                },
+                onDismiss = { viewModel.setShowDecimalConverterSheet(false) },
+                sheetState = decimalSheetState
             )
         }
 
