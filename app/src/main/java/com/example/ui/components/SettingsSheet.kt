@@ -1436,7 +1436,7 @@ fun SettingsSheet(
                                     fontWeight = FontWeight.Black
                                 )
                                 Text(
-                                    text = "Version 8.2 • Featuring 25+ Retro & Modern Themes, Rich Display Customization, GST Engine, Scientific & Programmer calculators, Live Age Chronometer, EMI and Unit Converters.",
+                                    text = "Version 8.3 • Featuring 25+ Retro & Modern Themes, Rich Display Customization, GST Engine, Scientific & Programmer calculators, Live Age Chronometer, EMI and Unit Converters.",
                                     color = activeTheme.screenExpressionColor,
                                     fontSize = 13.sp,
                                     lineHeight = 18.sp
