@@ -30,8 +30,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Transform
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -42,12 +42,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -57,8 +64,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.AngleMode
 import com.example.model.CalculatorMode
+import com.example.model.DisplayConfig
 import com.example.model.DisplayFontType
+import com.example.model.DisplayFormatter
+import com.example.model.DisplayNotation
+import com.example.model.DisplayPrecisionMode
+import com.example.model.DisplayScaleSize
+import com.example.model.DisplaySeparatorStyle
 import com.example.model.ThemePalette
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -70,13 +85,18 @@ fun CalculatorDisplay(
     angleMode: AngleMode,
     hasMemory: Boolean,
     mode: CalculatorMode,
+    displayConfig: DisplayConfig = DisplayConfig(),
     historyCount: Int = 0,
+    onToggleAngleMode: (() -> Unit)? = null,
     onOpenHistory: (() -> Unit)? = null,
     onOpenDecimalConverter: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val haptics = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
     val exprScrollState = rememberScrollState()
+    var justCopied by remember { mutableStateOf(false) }
 
     LaunchedEffect(expression) {
         if (exprScrollState.maxValue > 0) {
@@ -93,6 +113,44 @@ fun CalculatorDisplay(
 
     val screenShape = RoundedCornerShape(theme.cornerRadiusDp.coerceAtLeast(14.dp))
 
+    // Format expression and results according to Display Preferences
+    val formattedExpr = remember(expression, displayConfig.separatorStyle) {
+        DisplayFormatter.formatExpression(expression, displayConfig.separatorStyle)
+    }
+
+    val formattedResult = remember(result, displayConfig.separatorStyle, displayConfig.precisionMode, displayConfig.notation) {
+        DisplayFormatter.formatNumber(
+            valueStr = result,
+            separatorStyle = displayConfig.separatorStyle,
+            precisionMode = displayConfig.precisionMode,
+            notation = displayConfig.notation
+        )
+    }
+
+    val formattedPreview = remember(previewResult, displayConfig.separatorStyle, displayConfig.precisionMode, displayConfig.notation) {
+        previewResult?.let {
+            DisplayFormatter.formatNumber(
+                valueStr = it,
+                separatorStyle = displayConfig.separatorStyle,
+                precisionMode = displayConfig.precisionMode,
+                notation = displayConfig.notation
+            )
+        }
+    }
+
+    fun copyToClipboard(content: String, label: String = "Calculation") {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText(label, content)
+        clipboard.setPrimaryClip(clip)
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+        Toast.makeText(context, "Copied: $content", Toast.LENGTH_SHORT).show()
+        justCopied = true
+        coroutineScope.launch {
+            delay(1500)
+            justCopied = false
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -104,13 +162,16 @@ fun CalculatorDisplay(
                 } else Modifier
             )
             .combinedClickable(
-                onClick = {},
+                onClick = {
+                    if (displayConfig.copyOnTap) {
+                        copyToClipboard(formattedResult, "Result")
+                    }
+                },
                 onLongClick = {
-                    val textToCopy = if (expression.isNotBlank() && result != "0") "$expression = $result" else result
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = ClipData.newPlainText("Calculation", textToCopy)
-                    clipboard.setPrimaryClip(clip)
-                    Toast.makeText(context, "Copied: $textToCopy", Toast.LENGTH_SHORT).show()
+                    val fullEquation = if (formattedExpr.isNotBlank() && formattedResult != "0") {
+                        "$formattedExpr = $formattedResult"
+                    } else formattedResult
+                    copyToClipboard(fullEquation, "Calculation")
                 }
             )
             .padding(14.dp)
@@ -137,71 +198,119 @@ fun CalculatorDisplay(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Top Status & Actions Row: Mode, Angle, Decimal Converter Button, History Icon
+            // Top Status & Actions Row: Mode, Angle, Badges, Format indicators, Decimal Conv, Quick Copy, History
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // Mode Badge
-                    Surface(
-                        color = theme.accentColor.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(6.dp)
+                if (displayConfig.showStatusBadges) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        Text(
-                            text = mode.shortName.uppercase(),
-                            color = theme.accentColor,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = fontFamily,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-
-                    // Angle Mode Badge (DEG / RAD)
-                    if (mode == CalculatorMode.STANDARD || mode == CalculatorMode.SCIENTIFIC) {
+                        // Mode Badge
                         Surface(
-                            color = theme.secondaryAccent.copy(alpha = 0.15f),
+                            color = theme.accentColor.copy(alpha = 0.15f),
                             shape = RoundedCornerShape(6.dp)
                         ) {
                             Text(
-                                text = angleMode.name,
-                                color = theme.secondaryAccent,
+                                text = mode.shortName.uppercase(),
+                                color = theme.accentColor,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = fontFamily,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
-                    }
 
-                    // Memory Badge
-                    if (hasMemory) {
-                        Surface(
-                            color = Color(0xFFFFB703).copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(6.dp)
-                        ) {
-                            Text(
-                                text = "M",
-                                color = Color(0xFFFFB703),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                fontFamily = fontFamily,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
+                        // Angle Mode Badge (DEG / RAD) - Tap to toggle!
+                        if (mode == CalculatorMode.STANDARD || mode == CalculatorMode.SCIENTIFIC) {
+                            Surface(
+                                color = theme.secondaryAccent.copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(6.dp),
+                                modifier = if (onToggleAngleMode != null) {
+                                    Modifier.clickable { onToggleAngleMode() }
+                                } else Modifier
+                            ) {
+                                Text(
+                                    text = angleMode.name,
+                                    color = theme.secondaryAccent,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = fontFamily,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
+                        // Memory Badge
+                        if (hasMemory) {
+                            Surface(
+                                color = Color(0xFFFFB703).copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(6.dp)
+                            ) {
+                                Text(
+                                    text = "M",
+                                    color = Color(0xFFFFB703),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontFamily = fontFamily,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
+                        // Display Notation Badge if non-standard
+                        if (displayConfig.notation != DisplayNotation.STANDARD) {
+                            Surface(
+                                color = theme.surfaceColor,
+                                shape = RoundedCornerShape(6.dp)
+                            ) {
+                                Text(
+                                    text = if (displayConfig.notation == DisplayNotation.SCIENTIFIC) "SCI" else "ENG",
+                                    color = theme.screenExpressionColor,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontFamily = fontFamily,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                )
+                            }
                         }
                     }
+                } else {
+                    Spacer(modifier = Modifier.width(1.dp))
                 }
 
-                // Right Actions: Decimal Converter (F↔D / DEC) and History Icon
+                // Right Actions: Quick Copy Icon, Decimal Converter (F↔D / DEC) and History Icon
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
+                    // Quick Copy Action Button
+                    Surface(
+                        shape = CircleShape,
+                        color = if (justCopied) theme.accentColor.copy(alpha = 0.25f) else theme.surfaceColor,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .clickable {
+                                copyToClipboard(formattedResult, "Result")
+                            }
+                            .testTag("btn_display_copy")
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (justCopied) Icons.Default.Done else Icons.Default.ContentCopy,
+                                contentDescription = "Copy Result",
+                                tint = if (justCopied) theme.accentColor else theme.screenExpressionColor,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+
                     // Decimal Conversion Quick Pill Button
                     if (onOpenDecimalConverter != null) {
                         Surface(
@@ -232,7 +341,7 @@ fun CalculatorDisplay(
                         }
                     }
 
-                    // History Tape Button (relocated here seamlessly)
+                    // History Tape Button
                     if (onOpenHistory != null) {
                         Surface(
                             shape = CircleShape,
@@ -270,9 +379,10 @@ fun CalculatorDisplay(
                 }
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Expression Row (with horizontal scroll)
+            val exprBaseSize = displayConfig.scaleSize.exprSp
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -280,9 +390,9 @@ fun CalculatorDisplay(
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Text(
-                    text = if (expression.isEmpty()) "0" else expression,
-                    color = if (expression.isEmpty()) theme.screenExpressionColor.copy(alpha = 0.4f) else theme.screenExpressionColor,
-                    fontSize = 24.sp,
+                    text = if (formattedExpr.isEmpty()) "0" else formattedExpr,
+                    color = if (formattedExpr.isEmpty()) theme.screenExpressionColor.copy(alpha = 0.4f) else theme.screenExpressionColor,
+                    fontSize = exprBaseSize.sp,
                     fontFamily = fontFamily,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.End,
@@ -291,46 +401,49 @@ fun CalculatorDisplay(
                 )
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // Main Result Row + Live Preview Result
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.End
             ) {
-                // Live preview if available
-                AnimatedVisibility(
-                    visible = previewResult != null && previewResult != result,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    if (previewResult != null) {
-                        Text(
-                            text = "= $previewResult",
-                            color = theme.screenPreviewColor,
-                            fontSize = 20.sp,
-                            fontFamily = fontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            textAlign = TextAlign.End,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .padding(bottom = 2.dp)
-                                .testTag("preview_result_text")
-                        )
+                // Live preview if enabled and available
+                if (displayConfig.showLivePreview) {
+                    AnimatedVisibility(
+                        visible = formattedPreview != null && formattedPreview != formattedResult,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        if (formattedPreview != null) {
+                            Text(
+                                text = "= $formattedPreview",
+                                color = theme.screenPreviewColor,
+                                fontSize = (exprBaseSize - 2).coerceAtLeast(16).sp,
+                                fontFamily = fontFamily,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.End,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .padding(bottom = 2.dp)
+                                    .testTag("preview_result_text")
+                            )
+                        }
                     }
                 }
 
-                // Main Result
+                // Main Result with responsive scale
+                val baseSp = displayConfig.scaleSize.resultSp
                 val resultFontSize = when {
-                    result.length > 14 -> 32.sp
-                    result.length > 10 -> 40.sp
-                    result.length > 7 -> 48.sp
-                    else -> 56.sp
+                    formattedResult.length > 16 -> (baseSp - 24).coerceAtLeast(24).sp
+                    formattedResult.length > 12 -> (baseSp - 16).coerceAtLeast(28).sp
+                    formattedResult.length > 8 -> (baseSp - 8).coerceAtLeast(34).sp
+                    else -> baseSp.sp
                 }
 
                 Text(
-                    text = result,
+                    text = formattedResult,
                     color = theme.screenTextColor,
                     fontSize = resultFontSize,
                     fontFamily = fontFamily,

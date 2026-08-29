@@ -23,8 +23,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             val calculatorViewModel: CalculatorViewModel = viewModel()
             val uiState by calculatorViewModel.uiState.collectAsStateWithLifecycle()
-            val theme = remember(uiState.currentThemeId) {
-                CalculatorThemes.getThemeById(uiState.currentThemeId)
+            val theme = remember(uiState) {
+                calculatorViewModel.getEffectiveTheme(uiState)
             }
 
             MyApplicationTheme(

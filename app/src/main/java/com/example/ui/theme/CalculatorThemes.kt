@@ -1143,6 +1143,8 @@ object CalculatorThemes {
     )
 
     val allThemes: List<ThemePalette> = listOf(
+        MacClassic1984,
+        MacClassic1984Dark,
         Cyberpunk,
         Synthwave,
         NeoBrutalism,
@@ -1158,8 +1160,6 @@ object CalculatorThemes {
         SakuraBloom,
         MatrixHacker,
         AmethystRoyal,
-        MacClassic1984,
-        MacClassic1984Dark,
         Vaporwave95,
         EspressoRoast,
         LavaMagma,
@@ -1171,6 +1171,6 @@ object CalculatorThemes {
     )
 
     fun getThemeById(id: ThemeId): ThemePalette {
-        return allThemes.find { it.id == id } ?: Cyberpunk
+        return allThemes.find { it.id == id } ?: MacClassic1984
     }
 }

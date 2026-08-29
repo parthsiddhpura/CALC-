@@ -28,7 +28,12 @@ import com.example.model.GstResult
 import com.example.model.GstSlab
 import com.example.model.NumberBase
 import com.example.model.ButtonShapeType
+import com.example.model.DisplayConfig
 import com.example.model.DisplayFontType
+import com.example.model.DisplayNotation
+import com.example.model.DisplayPrecisionMode
+import com.example.model.DisplayScaleSize
+import com.example.model.DisplaySeparatorStyle
 import com.example.model.ThemeId
 import com.example.model.ThemePalette
 import com.example.model.UnitCategory
@@ -71,6 +76,9 @@ data class CalculatorUiState(
     // Sound & Haptic
     val isSoundEnabled: Boolean = true,
     val isHapticsEnabled: Boolean = true,
+    
+    // Display Configuration & Preferences
+    val displayConfig: DisplayConfig = DisplayConfig(),
     
     // Sheets & Dialogs
     val showThemeSheet: Boolean = false,
@@ -184,6 +192,31 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         val savedFontName = prefs.getString("custom_display_font", null)
         val savedFont = savedFontName?.let { try { DisplayFontType.valueOf(it) } catch (e: Exception) { null } }
 
+        // Saved Display Preferences
+        val savedSepName = prefs.getString("display_separator", null)
+        val savedSep = savedSepName?.let { try { DisplaySeparatorStyle.valueOf(it) } catch (e: Exception) { null } } ?: DisplaySeparatorStyle.COMMA
+        val savedPrecName = prefs.getString("display_precision", null)
+        val savedPrec = savedPrecName?.let { try { DisplayPrecisionMode.valueOf(it) } catch (e: Exception) { null } } ?: DisplayPrecisionMode.AUTO
+        val savedScaleName = prefs.getString("display_scale", null)
+        val savedScale = savedScaleName?.let { try { DisplayScaleSize.valueOf(it) } catch (e: Exception) { null } } ?: DisplayScaleSize.STANDARD
+        val savedNotationName = prefs.getString("display_notation", null)
+        val savedNotation = savedNotationName?.let { try { DisplayNotation.valueOf(it) } catch (e: Exception) { null } } ?: DisplayNotation.STANDARD
+        val savedLivePreview = prefs.getBoolean("display_live_preview", true)
+        val savedBadges = prefs.getBoolean("display_badges", true)
+        val savedScanlines = if (prefs.contains("display_scanlines")) prefs.getBoolean("display_scanlines", false) else null
+        val savedCopyTap = prefs.getBoolean("display_copy_tap", true)
+
+        val initialDisplayConfig = DisplayConfig(
+            separatorStyle = savedSep,
+            precisionMode = savedPrec,
+            scaleSize = savedScale,
+            notation = savedNotation,
+            showLivePreview = savedLivePreview,
+            showStatusBadges = savedBadges,
+            showScanlinesOverride = savedScanlines,
+            copyOnTap = savedCopyTap
+        )
+
         // Initial GST calculation
         val initialGstRes = GstEngine.calculate(1000.0, 18.0, GstCalculationType.EXCLUSIVE)
 
@@ -195,6 +228,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                 customDisplayFont = savedFont,
                 isSoundEnabled = savedSound,
                 isHapticsEnabled = savedHaptics,
+                displayConfig = initialDisplayConfig,
                 gstCurrentResult = initialGstRes
             )
         )
@@ -362,6 +396,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         val customAccent = state.customAccentColor?.let { Color(it.toInt()) }
         val shape = state.customShapeType ?: base.shapeType
         val font = state.customDisplayFont ?: base.displayFont
+        val scanlines = state.displayConfig.showScanlinesOverride ?: base.hasScanlines
         val radius = when (state.customShapeType) {
             ButtonShapeType.PILL -> 24.dp
             ButtonShapeType.CIRCLE -> 24.dp
@@ -375,10 +410,87 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             shapeType = shape,
             displayFont = font,
             cornerRadiusDp = radius,
+            hasScanlines = scanlines,
             equalsButtonBrush = if (customAccent != null) {
                 Brush.linearGradient(listOf(customAccent, customAccent.copy(alpha = 0.85f)))
             } else base.equalsButtonBrush
         )
+    }
+
+    fun setDisplaySeparator(separator: DisplaySeparatorStyle) {
+        prefs.edit().putString("display_separator", separator.name).apply()
+        _uiState.update { it.copy(displayConfig = it.displayConfig.copy(separatorStyle = separator)) }
+    }
+
+    fun setDisplayPrecision(precision: DisplayPrecisionMode) {
+        prefs.edit().putString("display_precision", precision.name).apply()
+        _uiState.update { it.copy(displayConfig = it.displayConfig.copy(precisionMode = precision)) }
+    }
+
+    fun setDisplayScale(scale: DisplayScaleSize) {
+        prefs.edit().putString("display_scale", scale.name).apply()
+        _uiState.update { it.copy(displayConfig = it.displayConfig.copy(scaleSize = scale)) }
+    }
+
+    fun setDisplayNotation(notation: DisplayNotation) {
+        prefs.edit().putString("display_notation", notation.name).apply()
+        _uiState.update { it.copy(displayConfig = it.displayConfig.copy(notation = notation)) }
+    }
+
+    fun toggleLivePreview() {
+        _uiState.update {
+            val nextVal = !it.displayConfig.showLivePreview
+            prefs.edit().putBoolean("display_live_preview", nextVal).apply()
+            it.copy(displayConfig = it.displayConfig.copy(showLivePreview = nextVal))
+        }
+    }
+
+    fun toggleStatusBadges() {
+        _uiState.update {
+            val nextVal = !it.displayConfig.showStatusBadges
+            prefs.edit().putBoolean("display_badges", nextVal).apply()
+            it.copy(displayConfig = it.displayConfig.copy(showStatusBadges = nextVal))
+        }
+    }
+
+    fun toggleScanlinesOverride() {
+        _uiState.update {
+            val nextVal = when (it.displayConfig.showScanlinesOverride) {
+                null -> true
+                true -> false
+                false -> null
+            }
+            if (nextVal == null) {
+                prefs.edit().remove("display_scanlines").apply()
+            } else {
+                prefs.edit().putBoolean("display_scanlines", nextVal).apply()
+            }
+            it.copy(displayConfig = it.displayConfig.copy(showScanlinesOverride = nextVal))
+        }
+    }
+
+    fun toggleCopyOnTap() {
+        _uiState.update {
+            val nextVal = !it.displayConfig.copyOnTap
+            prefs.edit().putBoolean("display_copy_tap", nextVal).apply()
+            it.copy(displayConfig = it.displayConfig.copy(copyOnTap = nextVal))
+        }
+    }
+
+    fun resetDisplaySettings() {
+        prefs.edit()
+            .remove("display_separator")
+            .remove("display_precision")
+            .remove("display_scale")
+            .remove("display_notation")
+            .remove("display_live_preview")
+            .remove("display_badges")
+            .remove("display_scanlines")
+            .remove("display_copy_tap")
+            .apply()
+        _uiState.update {
+            it.copy(displayConfig = DisplayConfig())
+        }
     }
 
     fun setShowDecimalConverterSheet(show: Boolean, targetValue: String? = null) {
