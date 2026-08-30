@@ -4,9 +4,15 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -433,19 +439,24 @@ fun CalculatorDisplay(
                     }
                 }
 
-                // Main Result with responsive scale
-                val baseSp = displayConfig.scaleSize.resultSp
-                val resultFontSize = when {
-                    formattedResult.length > 16 -> (baseSp - 24).coerceAtLeast(24).sp
-                    formattedResult.length > 12 -> (baseSp - 16).coerceAtLeast(28).sp
-                    formattedResult.length > 8 -> (baseSp - 8).coerceAtLeast(34).sp
-                    else -> baseSp.sp
+                // Main Result with smooth responsive scale
+                val baseSp = displayConfig.scaleSize.resultSp.toFloat()
+                val targetSp = when {
+                    formattedResult.length > 16 -> (baseSp - 24f).coerceAtLeast(24f)
+                    formattedResult.length > 12 -> (baseSp - 16f).coerceAtLeast(28f)
+                    formattedResult.length > 8 -> (baseSp - 8f).coerceAtLeast(34f)
+                    else -> baseSp
                 }
+                val animatedSp by animateFloatAsState(
+                    targetValue = targetSp,
+                    animationSpec = spring(dampingRatio = 0.8f, stiffness = 600f),
+                    label = "result_font_scale"
+                )
 
                 Text(
                     text = formattedResult,
                     color = theme.screenTextColor,
-                    fontSize = resultFontSize,
+                    fontSize = animatedSp.sp,
                     fontFamily = fontFamily,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.End,

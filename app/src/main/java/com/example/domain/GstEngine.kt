@@ -1,5 +1,6 @@
 package com.example.domain
 
+import com.example.model.AngleMode
 import com.example.model.GstCalculationType
 import com.example.model.GstResult
 import com.example.model.GstSlab
@@ -8,6 +9,13 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
+
+data class TaxPreset(
+    val countryName: String,
+    val flagEmoji: String,
+    val taxName: String,
+    val rates: List<Double>
+)
 
 object GstEngine {
 
@@ -19,8 +27,42 @@ object GstEngine {
         GstSlab(id = 4, name = "GST+4", ratePercent = 28.0, label = "28%")
     )
 
+    val COUNTRY_PRESETS = listOf(
+        TaxPreset("India (GST)", "🇮🇳", "GST", listOf(0.0, 5.0, 12.0, 18.0, 28.0)),
+        TaxPreset("United States (Sales Tax)", "🇺🇸", "Tax", listOf(0.0, 4.0, 6.0, 8.25, 10.0)),
+        TaxPreset("United Kingdom (VAT)", "🇬🇧", "VAT", listOf(0.0, 5.0, 12.5, 20.0, 20.0)),
+        TaxPreset("European Union (VAT)", "🇪🇺", "VAT", listOf(0.0, 5.5, 10.0, 20.0, 23.0)),
+        TaxPreset("Canada (GST/HST)", "🇨🇦", "GST", listOf(0.0, 5.0, 12.0, 13.0, 15.0)),
+        TaxPreset("Australia & NZ (GST)", "🇦🇺", "GST", listOf(0.0, 5.0, 10.0, 12.5, 15.0)),
+        TaxPreset("Japan (消費税)", "🇯🇵", "Tax", listOf(0.0, 8.0, 10.0, 10.0, 10.0)),
+        TaxPreset("Singapore (GST)", "🇸🇬", "GST", listOf(0.0, 7.0, 8.0, 9.0, 9.0)),
+        TaxPreset("Saudi Arabia & UAE (VAT)", "🇸🇦", "VAT", listOf(0.0, 5.0, 10.0, 15.0, 15.0))
+    )
+
     private val US_SYMBOLS = DecimalFormatSymbols(Locale.US)
     private val currencyDf = DecimalFormat("#,##0.00", US_SYMBOLS)
+
+    fun formatRateLabel(rate: Double): String {
+        return if (rate == rate.toLong().toDouble()) {
+            "${rate.toLong()}%"
+        } else {
+            "$rate%"
+        }
+    }
+
+    fun evaluateAmountOrExpression(input: String): Double {
+        if (input.isBlank()) return 0.0
+        val trimmed = input.trim()
+        val direct = trimmed.toDoubleOrNull()
+        if (direct != null) return direct
+
+        return try {
+            val resultStr = CalculatorEngine.evaluate(trimmed, AngleMode.DEG)
+            if (resultStr == "Error") 0.0 else resultStr.replace(",", "").toDoubleOrNull() ?: 0.0
+        } catch (e: Exception) {
+            0.0
+        }
+    }
 
     fun calculate(
         amount: Double,
@@ -77,3 +119,4 @@ object GstEngine {
         return currencyDf.format(value)
     }
 }
+

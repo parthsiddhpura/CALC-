@@ -19,6 +19,7 @@ import com.example.domain.SoundHapticHelper
 import com.example.domain.WordSize
 import com.example.model.AgeProfile
 import com.example.model.AngleMode
+import com.example.model.AppLanguage
 import com.example.model.CalculationHistory
 import com.example.model.CalculatorMode
 import com.example.model.ConversionUnit
@@ -38,6 +39,7 @@ import com.example.model.ThemeId
 import com.example.model.ThemePalette
 import com.example.model.UnitCategory
 import com.example.model.UnitConverterData
+import com.example.domain.TaxPreset
 import com.example.ui.theme.CalculatorThemes
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -76,6 +78,9 @@ data class CalculatorUiState(
     // Sound & Haptic
     val isSoundEnabled: Boolean = true,
     val isHapticsEnabled: Boolean = true,
+    
+    // App Language
+    val currentLanguage: AppLanguage = AppLanguage.ENGLISH,
     
     // Display Configuration & Preferences
     val displayConfig: DisplayConfig = DisplayConfig(),
@@ -205,6 +210,8 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         val savedBadges = prefs.getBoolean("display_badges", true)
         val savedScanlines = if (prefs.contains("display_scanlines")) prefs.getBoolean("display_scanlines", false) else null
         val savedCopyTap = prefs.getBoolean("display_copy_tap", true)
+        val savedLangCode = prefs.getString("app_language", "en") ?: "en"
+        val savedLanguage = AppLanguage.fromCode(savedLangCode)
 
         val initialDisplayConfig = DisplayConfig(
             separatorStyle = savedSep,
@@ -217,8 +224,21 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             copyOnTap = savedCopyTap
         )
 
+        // Load saved GST slabs
+        val initialSlabs = GstEngine.DEFAULT_SLABS.map { defSlab ->
+            val key = "gst_slab_rate_${defSlab.id}"
+            if (prefs.contains(key)) {
+                val rate = prefs.getFloat(key, defSlab.ratePercent.toFloat()).toDouble()
+                defSlab.copy(ratePercent = rate, label = GstEngine.formatRateLabel(rate))
+            } else {
+                defSlab
+            }
+        }
+        val initialSlabId = prefs.getInt("gst_selected_slab_id", 3)
+        val initialSlab = initialSlabs.firstOrNull { it.id == initialSlabId } ?: initialSlabs[3]
+
         // Initial GST calculation
-        val initialGstRes = GstEngine.calculate(1000.0, 18.0, GstCalculationType.EXCLUSIVE)
+        val initialGstRes = GstEngine.calculate(1000.0, initialSlab.ratePercent, GstCalculationType.EXCLUSIVE)
 
         _uiState = MutableStateFlow(
             CalculatorUiState(
@@ -228,7 +248,10 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                 customDisplayFont = savedFont,
                 isSoundEnabled = savedSound,
                 isHapticsEnabled = savedHaptics,
+                currentLanguage = savedLanguage,
                 displayConfig = initialDisplayConfig,
+                gstSlabs = initialSlabs,
+                gstSelectedSlabId = initialSlab.id,
                 gstCurrentResult = initialGstRes
             )
         )
@@ -655,7 +678,12 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    // --- GST Calculator Actions (Casio MJ-120GST Style) ---
+    fun setAppLanguage(language: AppLanguage) {
+        prefs.edit().putString("app_language", language.code).apply()
+        _uiState.update { it.copy(currentLanguage = language) }
+    }
+
+    // --- GST Calculator Actions (Casio MJ-120GST Style with Expression Support) ---
 
     fun onGstInputDigit(digit: String, haptics: HapticFeedback? = null) {
         soundHapticHelper.playClick(_uiState.value.isSoundEnabled)
@@ -663,11 +691,68 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
         _uiState.update { state ->
             val cur = state.gstAmountInput
-            val newInput = if (cur == "0" || cur == "1000" && digit != "00") digit else cur + digit
-            val amt = newInput.toDoubleOrNull() ?: 0.0
+            val isOperator = digit in listOf("+", "−", "-", "×", "*", "÷", "/", "%")
+            val endsWithOperator = cur.isNotEmpty() && cur.last() in listOf('+', '−', '-', '×', '*', '÷', '/', '%')
+
+            val newInput = when {
+                // If user entered an operator and string already ends with an operator, replace operator
+                isOperator && endsWithOperator -> {
+                    cur.dropLast(1) + digit
+                }
+                // If user entered an operator on initial 0
+                isOperator && (cur.isEmpty() || cur == "0") -> {
+                    "0$digit"
+                }
+                // First digit replacement from 0 or initial 1000
+                (cur == "0" || cur == "1000") && !isOperator && digit != "00" && digit != "." -> {
+                    digit
+                }
+                else -> {
+                    cur + digit
+                }
+            }
+
+            val amt = GstEngine.evaluateAmountOrExpression(newInput)
+            val slab = state.gstSlabs.firstOrNull { it.id == state.gstSelectedSlabId } ?: state.gstSlabs[3]
+            val res = if (amt > 0.0) GstEngine.calculate(amt, slab.ratePercent, state.gstCalculationType) else null
+            state.copy(gstAmountInput = newInput, gstCurrentResult = res)
+        }
+    }
+
+    fun onGstEquals(haptics: HapticFeedback? = null) {
+        soundHapticHelper.playClick(_uiState.value.isSoundEnabled)
+        soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled)
+
+        _uiState.update { state ->
+            val cur = state.gstAmountInput
+            val amt = GstEngine.evaluateAmountOrExpression(cur)
             val slab = state.gstSlabs.firstOrNull { it.id == state.gstSelectedSlabId } ?: state.gstSlabs[3]
             val res = GstEngine.calculate(amt, slab.ratePercent, state.gstCalculationType)
-            state.copy(gstAmountInput = newInput, gstCurrentResult = res)
+
+            val solvedAmountStr = if (amt == amt.toLong().toDouble()) amt.toLong().toString() else amt.toString()
+
+            // Accumulate into Grand Total (GST GT)
+            val newGtGross = state.gstGrandTotalGross + res.grossAmount
+            val newGtGst = state.gstGrandTotalGst + res.gstAmount
+            val newCount = state.gstCalculationCount + 1
+
+            viewModelScope.launch {
+                val label = if (state.gstCalculationType == GstCalculationType.EXCLUSIVE) "GST+ (${slab.label})" else "GST- (${slab.label})"
+                val exprDesc = if (cur != solvedAmountStr && cur.isNotBlank()) "$cur = $solvedAmountStr ($label)" else "$label on ${GstEngine.formatCurrency(amt)}"
+                repository.insert(
+                    expression = exprDesc,
+                    result = "Gross: ${GstEngine.formatCurrency(res.grossAmount)} (Tax: ${GstEngine.formatCurrency(res.gstAmount)})",
+                    mode = "GST_TAX"
+                )
+            }
+
+            state.copy(
+                gstAmountInput = solvedAmountStr,
+                gstCurrentResult = res,
+                gstGrandTotalGross = newGtGross,
+                gstGrandTotalGst = newGtGst,
+                gstCalculationCount = newCount
+            )
         }
     }
 
@@ -683,7 +768,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update { state ->
             val cur = state.gstAmountInput
             val newInput = if (cur.length > 1) cur.dropLast(1) else "0"
-            val amt = newInput.toDoubleOrNull() ?: 0.0
+            val amt = GstEngine.evaluateAmountOrExpression(newInput)
             val slab = state.gstSlabs.firstOrNull { it.id == state.gstSelectedSlabId } ?: state.gstSlabs[3]
             val res = if (amt > 0.0) GstEngine.calculate(amt, slab.ratePercent, state.gstCalculationType) else null
             state.copy(gstAmountInput = newInput, gstCurrentResult = res)
@@ -695,7 +780,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled)
         _uiState.update { state ->
             val nextType = if (state.gstCalculationType == GstCalculationType.EXCLUSIVE) GstCalculationType.INCLUSIVE else GstCalculationType.EXCLUSIVE
-            val amt = state.gstAmountInput.toDoubleOrNull() ?: 0.0
+            val amt = GstEngine.evaluateAmountOrExpression(state.gstAmountInput)
             val slab = state.gstSlabs.firstOrNull { it.id == state.gstSelectedSlabId } ?: state.gstSlabs[3]
             val res = GstEngine.calculate(amt, slab.ratePercent, nextType)
             state.copy(gstCalculationType = nextType, gstCurrentResult = res)
@@ -705,11 +790,14 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
     fun onGstSelectSlab(slab: GstSlab, haptics: HapticFeedback? = null) {
         soundHapticHelper.playClick(_uiState.value.isSoundEnabled)
         soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled)
+        prefs.edit().putInt("gst_selected_slab_id", slab.id).apply()
 
         _uiState.update { state ->
-            val amt = state.gstAmountInput.toDoubleOrNull() ?: 0.0
+            val cur = state.gstAmountInput
+            val amt = GstEngine.evaluateAmountOrExpression(cur)
             val res = GstEngine.calculate(amt, slab.ratePercent, state.gstCalculationType)
-            
+            val solvedAmountStr = if (amt == amt.toLong().toDouble()) amt.toLong().toString() else amt.toString()
+
             // Accumulate into Grand Total (GST GT)
             val newGtGross = state.gstGrandTotalGross + res.grossAmount
             val newGtGst = state.gstGrandTotalGst + res.gstAmount
@@ -717,8 +805,9 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
             viewModelScope.launch {
                 val label = if (state.gstCalculationType == GstCalculationType.EXCLUSIVE) "GST+ (${slab.label})" else "GST- (${slab.label})"
+                val exprDesc = if (cur != solvedAmountStr && cur.isNotBlank()) "$cur = $solvedAmountStr ($label)" else "$label on ${GstEngine.formatCurrency(amt)}"
                 repository.insert(
-                    expression = "$label on ${GstEngine.formatCurrency(amt)}",
+                    expression = exprDesc,
                     result = "Gross: ${GstEngine.formatCurrency(res.grossAmount)} (Tax: ${GstEngine.formatCurrency(res.gstAmount)})",
                     mode = "GST_TAX"
                 )
@@ -726,6 +815,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
             state.copy(
                 gstSelectedSlabId = slab.id,
+                gstAmountInput = solvedAmountStr,
                 gstCurrentResult = res,
                 gstGrandTotalGross = newGtGross,
                 gstGrandTotalGst = newGtGst,
@@ -741,14 +831,36 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     fun onGstUpdateSlabRate(slabId: Int, newRate: Double) {
+        prefs.edit().putFloat("gst_slab_rate_$slabId", newRate.toFloat()).apply()
         _uiState.update { state ->
             val updatedList = state.gstSlabs.map { slab ->
                 if (slab.id == slabId) {
-                    slab.copy(ratePercent = newRate, label = "${newRate.toInt()}%")
+                    slab.copy(ratePercent = newRate, label = GstEngine.formatRateLabel(newRate))
                 } else slab
             }
-            val amt = state.gstAmountInput.toDoubleOrNull() ?: 0.0
+            val amt = GstEngine.evaluateAmountOrExpression(state.gstAmountInput)
             val selectedSlab = updatedList.firstOrNull { it.id == state.gstSelectedSlabId } ?: updatedList[3]
+            val res = GstEngine.calculate(amt, selectedSlab.ratePercent, state.gstCalculationType)
+            state.copy(gstSlabs = updatedList, gstCurrentResult = res)
+        }
+    }
+
+    fun onGstApplyPreset(preset: TaxPreset) {
+        val editor = prefs.edit()
+        val updatedList = GstEngine.DEFAULT_SLABS.mapIndexed { idx, defSlab ->
+            val rate = preset.rates.getOrElse(idx) { 0.0 }
+            editor.putFloat("gst_slab_rate_${defSlab.id}", rate.toFloat())
+            defSlab.copy(
+                ratePercent = rate,
+                label = GstEngine.formatRateLabel(rate),
+                name = "${preset.taxName}+$idx"
+            )
+        }
+        editor.apply()
+
+        _uiState.update { state ->
+            val amt = GstEngine.evaluateAmountOrExpression(state.gstAmountInput)
+            val selectedSlab = updatedList.firstOrNull { it.id == state.gstSelectedSlabId } ?: updatedList.getOrElse(3) { updatedList[0] }
             val res = GstEngine.calculate(amt, selectedSlab.ratePercent, state.gstCalculationType)
             state.copy(gstSlabs = updatedList, gstCurrentResult = res)
         }

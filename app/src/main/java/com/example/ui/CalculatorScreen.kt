@@ -1,8 +1,13 @@
 package com.example.ui
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.domain.LanguageStrings
 import com.example.model.CalculatorMode
 import com.example.ui.components.AgeCalculatorView
 import com.example.ui.components.BmiCalculatorView
@@ -165,10 +171,10 @@ fun CalculatorScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        val mainModes = listOf(
-                            Pair(CalculatorMode.STANDARD, "Standard"),
-                            Pair(CalculatorMode.GST_CALCULATOR, "GST Calc"),
-                            Pair(CalculatorMode.SCIENTIFIC, "Scientific")
+                        val mainModes: List<Pair<CalculatorMode, String>> = listOf(
+                            Pair(CalculatorMode.STANDARD, LanguageStrings.modeStandard(uiState.currentLanguage)),
+                            Pair(CalculatorMode.GST_CALCULATOR, LanguageStrings.modeGst(uiState.currentLanguage)),
+                            Pair(CalculatorMode.SCIENTIFIC, LanguageStrings.modeScientific(uiState.currentLanguage))
                         )
 
                         mainModes.forEach { (modeItem, label) ->
@@ -213,7 +219,7 @@ fun CalculatorScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (isMoreSelected) uiState.mode.shortName else "More",
+                                    text = if (isMoreSelected) uiState.mode.shortName else LanguageStrings.modeMore(uiState.currentLanguage),
                                     color = if (isMoreSelected) theme.backgroundColor else theme.screenTextColor,
                                     fontSize = 13.sp,
                                     fontWeight = if (isMoreSelected) FontWeight.Bold else FontWeight.Medium
@@ -235,7 +241,14 @@ fun CalculatorScreen(
                 // Middle Content & Screen Display (Expands to fill available space)
                 AnimatedContent(
                     targetState = uiState.mode,
-                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    transitionSpec = {
+                        (fadeIn(animationSpec = tween(180, easing = FastOutSlowInEasing)) +
+                         scaleIn(initialScale = 0.97f, animationSpec = tween(180, easing = FastOutSlowInEasing)))
+                            .togetherWith(
+                                fadeOut(animationSpec = tween(120)) +
+                                scaleOut(targetScale = 0.99f, animationSpec = tween(120))
+                            )
+                    },
                     label = "mode_transition",
                     modifier = Modifier.weight(1f)
                 ) { targetMode ->
@@ -290,13 +303,16 @@ fun CalculatorScreen(
                                     grandTotalGross = uiState.gstGrandTotalGross,
                                     grandTotalGst = uiState.gstGrandTotalGst,
                                     calculationCount = uiState.gstCalculationCount,
+                                    language = uiState.currentLanguage,
                                     onInputDigit = { viewModel.onGstInputDigit(it, haptics) },
+                                    onEquals = { viewModel.onGstEquals(haptics) },
                                     onClear = { viewModel.onGstClear(haptics) },
                                     onBackspace = { viewModel.onGstBackspace(haptics) },
                                     onToggleType = { viewModel.onGstToggleType(haptics) },
                                     onSelectSlab = { viewModel.onGstSelectSlab(it, haptics) },
                                     onClearGrandTotal = { viewModel.onGstClearGrandTotal() },
                                     onUpdateSlabRate = { id, rate -> viewModel.onGstUpdateSlabRate(id, rate) },
+                                    onApplyPreset = { viewModel.onGstApplyPreset(it) },
                                     modifier = Modifier.padding(vertical = 4.dp)
                                 )
                             }
@@ -516,6 +532,8 @@ fun CalculatorScreen(
                 customDisplayFont = uiState.customDisplayFont,
                 onSelectDisplayFont = { viewModel.setCustomDisplayFont(it) },
                 displayConfig = uiState.displayConfig,
+                currentLanguage = uiState.currentLanguage,
+                onSelectLanguage = { viewModel.setAppLanguage(it) },
                 onSelectDisplaySeparator = { viewModel.setDisplaySeparator(it) },
                 onSelectDisplayPrecision = { viewModel.setDisplayPrecision(it) },
                 onSelectDisplayScale = { viewModel.setDisplayScale(it) },

@@ -1,5 +1,7 @@
 package com.example.ui.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
@@ -61,32 +63,55 @@ fun CalculatorButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    val scale = if (theme.pressAnimation == PressAnimationType.BOUNCE) {
-        val anim by animateFloatAsState(
-            targetValue = if (isPressed) 0.93f else 1.0f,
-            animationSpec = spring(dampingRatio = 0.8f, stiffness = 800f),
-            label = "btn_scale"
-        )
-        anim
-    } else 1.0f
+    // Smooth snappy tactile spring animation
+    val scale by animateFloatAsState(
+        targetValue = when {
+            isPressed && theme.pressAnimation == PressAnimationType.BOUNCE -> 0.88f
+            isPressed -> 0.92f
+            else -> 1.0f
+        },
+        animationSpec = spring(
+            dampingRatio = 0.68f,
+            stiffness = 1100f
+        ),
+        label = "btn_smooth_scale"
+    )
 
-    val sinkOffsetY = if (theme.pressAnimation == PressAnimationType.DEEP_SINK) {
-        val anim by animateFloatAsState(
-            targetValue = if (isPressed) 2.5f else 0f,
-            animationSpec = tween(durationMillis = 40),
-            label = "btn_sink"
-        )
-        anim
-    } else 0f
+    val sinkOffsetY by animateFloatAsState(
+        targetValue = when {
+            isPressed && theme.pressAnimation == PressAnimationType.DEEP_SINK -> 4f
+            isPressed -> 1.5f
+            else -> 0f
+        },
+        animationSpec = spring(
+            dampingRatio = 0.75f,
+            stiffness = 1200f
+        ),
+        label = "btn_sink"
+    )
 
-    val brutalOffset = if (theme.isBrutalistShadow) {
-        val anim by animateFloatAsState(
-            targetValue = if (isPressed) 0f else 3.5f,
-            animationSpec = tween(durationMillis = 40),
-            label = "btn_brutal"
-        )
-        anim
-    } else 3.5f
+    val brutalOffset by animateFloatAsState(
+        targetValue = if (isPressed) 0f else 3.5f,
+        animationSpec = spring(dampingRatio = 0.8f, stiffness = 1000f),
+        label = "btn_brutal"
+    )
+
+    val animatedBgColor by animateColorAsState(
+        targetValue = if (isPressed) {
+            when (theme.pressAnimation) {
+                PressAnimationType.NEON_GLOW -> theme.accentColor.copy(alpha = 0.35f)
+                else -> backgroundColor.copy(alpha = 0.82f)
+            }
+        } else backgroundColor,
+        animationSpec = tween(durationMillis = 90),
+        label = "btn_bg_anim"
+    )
+
+    val animatedElevation by animateDpAsState(
+        targetValue = if (isPressed) (theme.shadowElevationDp / 3) else theme.shadowElevationDp,
+        animationSpec = tween(durationMillis = 80),
+        label = "btn_elev_anim"
+    )
 
     val shape: Shape = remember(theme.shapeType, theme.cornerRadiusDp) {
         when (theme.shapeType) {
@@ -144,7 +169,7 @@ fun CalculatorButton(
                 .then(
                     if (theme.hasShadow && !theme.isBrutalistShadow) {
                         Modifier.shadow(
-                            elevation = if (isPressed) (theme.shadowElevationDp / 2) else theme.shadowElevationDp,
+                            elevation = animatedElevation,
                             shape = shape
                         )
                     } else Modifier
@@ -154,11 +179,7 @@ fun CalculatorButton(
                     if (backgroundBrush != null) {
                         Modifier.background(backgroundBrush)
                     } else {
-                        Modifier.background(
-                            if (isPressed && theme.pressAnimation == PressAnimationType.NEON_GLOW) {
-                                backgroundColor.copy(alpha = 0.85f)
-                            } else backgroundColor
-                        )
+                        Modifier.background(animatedBgColor)
                     }
                 )
                 .then(

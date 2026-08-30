@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Vibration
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
@@ -76,6 +77,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.domain.LanguageStrings
+import com.example.model.AppLanguage
 import com.example.model.ButtonShapeType
 import com.example.model.DisplayConfig
 import com.example.model.DisplayFontType
@@ -133,6 +136,8 @@ fun SettingsSheet(
     customDisplayFont: DisplayFontType?,
     onSelectDisplayFont: (DisplayFontType?) -> Unit,
     displayConfig: DisplayConfig,
+    currentLanguage: AppLanguage,
+    onSelectLanguage: (AppLanguage) -> Unit,
     onSelectDisplaySeparator: (DisplaySeparatorStyle) -> Unit,
     onSelectDisplayPrecision: (DisplayPrecisionMode) -> Unit,
     onSelectDisplayScale: (DisplayScaleSize) -> Unit,
@@ -151,10 +156,11 @@ fun SettingsSheet(
     sheetState: SheetState,
     modifier: Modifier = Modifier
 ) {
-    var selectedSection by remember { mutableStateOf("appearance") } // "appearance", "display", "haptics", "about"
+    var selectedSection by remember { mutableStateOf("appearance") } // "appearance", "display", "language", "haptics", "about"
     var themeCategory by remember { mutableStateOf("All") }
     var themeSearchQuery by remember { mutableStateOf("") }
     var themeFilterDarkLight by remember { mutableStateOf("All") }
+    var languageSearchQuery by remember { mutableStateOf("") }
 
     val haptics = LocalHapticFeedback.current
 
@@ -216,13 +222,13 @@ fun SettingsSheet(
                     }
                     Column {
                         Text(
-                            text = "Settings",
+                            text = LanguageStrings.settingsTitle(currentLanguage),
                             color = activeTheme.screenTextColor,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Themes, Display, Audio & Haptics",
+                            text = "Themes, Languages, Audio & Haptics",
                             color = activeTheme.screenExpressionColor,
                             fontSize = 12.sp
                         )
@@ -243,20 +249,21 @@ fun SettingsSheet(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Navigation Segmented Bar (Appearance, Display, Haptics, About)
+            // Navigation Segmented Bar (Appearance, Display, Language, Haptics, About)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
                     .background(activeTheme.cardBackground)
                     .padding(4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 listOf(
-                    Triple("appearance", "Themes", Icons.Default.Palette),
-                    Triple("display", "Display", Icons.Default.Tv),
-                    Triple("haptics", "Haptics", Icons.Default.Vibration),
-                    Triple("about", "About", Icons.Default.Info)
+                    Triple("appearance", LanguageStrings.tabThemes(currentLanguage), Icons.Default.Palette),
+                    Triple("display", LanguageStrings.tabDisplay(currentLanguage), Icons.Default.Tv),
+                    Triple("language", LanguageStrings.tabLanguage(currentLanguage), Icons.Default.Translate),
+                    Triple("haptics", LanguageStrings.tabHaptics(currentLanguage), Icons.Default.Vibration),
+                    Triple("about", LanguageStrings.tabAbout(currentLanguage), Icons.Default.Info)
                 ).forEach { (sectionKey, label, icon) ->
                     val isSelected = selectedSection == sectionKey
                     Surface(
@@ -267,7 +274,7 @@ fun SettingsSheet(
                             .clickable { selectedSection = sectionKey }
                     ) {
                         Row(
-                            modifier = Modifier.padding(vertical = 8.dp),
+                            modifier = Modifier.padding(vertical = 8.dp, horizontal = 2.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -281,8 +288,9 @@ fun SettingsSheet(
                             Text(
                                 text = label,
                                 color = if (isSelected) activeTheme.backgroundColor else activeTheme.screenExpressionColor,
-                                fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                fontSize = 10.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                maxLines = 1
                             )
                         }
                     }
@@ -1300,6 +1308,148 @@ fun SettingsSheet(
                             Text("Reset Display Settings to Defaults", fontWeight = FontWeight.Bold)
                         }
                     }
+                } else if (selectedSection == "language") {
+                    // --- LANGUAGE SELECTION SECTION ---
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = activeTheme.cardBackground,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Translate,
+                                        contentDescription = "Language",
+                                        tint = activeTheme.accentColor,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Column {
+                                        Text(
+                                            text = LanguageStrings.chooseLanguage(currentLanguage),
+                                            color = activeTheme.screenTextColor,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "Select your preferred language for calculations and tax labels",
+                                            color = activeTheme.screenExpressionColor,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
+
+                                // Search Field
+                                OutlinedTextField(
+                                    value = languageSearchQuery,
+                                    onValueChange = { languageSearchQuery = it },
+                                    placeholder = { Text("Search language or country...") },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Search,
+                                            contentDescription = "Search",
+                                            tint = activeTheme.screenExpressionColor
+                                        )
+                                    },
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedContainerColor = activeTheme.surfaceColor,
+                                        unfocusedContainerColor = activeTheme.surfaceColor,
+                                        focusedBorderColor = activeTheme.accentColor,
+                                        unfocusedBorderColor = activeTheme.surfaceColor
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                HorizontalDivider(color = activeTheme.surfaceColor)
+
+                                val filteredLanguages = remember(languageSearchQuery) {
+                                    AppLanguage.values().filter { lang ->
+                                        if (languageSearchQuery.isBlank()) true else {
+                                            lang.nativeName.contains(languageSearchQuery, ignoreCase = true) ||
+                                            lang.displayName.contains(languageSearchQuery, ignoreCase = true) ||
+                                            lang.regionName.contains(languageSearchQuery, ignoreCase = true)
+                                        }
+                                    }
+                                }
+
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    filteredLanguages.forEach { lang ->
+                                        val isSelected = lang == currentLanguage
+                                        Surface(
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = if (isSelected) activeTheme.accentColor.copy(alpha = 0.18f) else activeTheme.surfaceColor,
+                                            border = if (isSelected) androidx.compose.foundation.BorderStroke(1.5.dp, activeTheme.accentColor) else null,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable {
+                                                    onSelectLanguage(lang)
+                                                }
+                                                .testTag("lang_option_${lang.code}")
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                                ) {
+                                                    Text(
+                                                        text = lang.flagEmoji,
+                                                        fontSize = 24.sp
+                                                    )
+                                                    Column {
+                                                        Text(
+                                                            text = lang.nativeName,
+                                                            fontWeight = FontWeight.Bold,
+                                                            fontSize = 15.sp,
+                                                            color = activeTheme.screenTextColor
+                                                        )
+                                                        Text(
+                                                            text = "${lang.displayName} • ${lang.regionName}",
+                                                            fontSize = 12.sp,
+                                                            color = activeTheme.screenExpressionColor
+                                                        )
+                                                    }
+                                                }
+
+                                                if (isSelected) {
+                                                    Surface(
+                                                        shape = CircleShape,
+                                                        color = activeTheme.accentColor,
+                                                        modifier = Modifier.size(24.dp)
+                                                    ) {
+                                                        Box(contentAlignment = Alignment.Center) {
+                                                            Icon(
+                                                                imageVector = Icons.Default.Check,
+                                                                contentDescription = "Selected",
+                                                                tint = activeTheme.backgroundColor,
+                                                                modifier = Modifier.size(16.dp)
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 } else if (selectedSection == "haptics") {
                     // --- HAPTICS & SOUND SETTINGS ---
                     item {
@@ -1436,7 +1586,7 @@ fun SettingsSheet(
                                     fontWeight = FontWeight.Black
                                 )
                                 Text(
-                                    text = "Version 8.3 • Featuring 25+ Retro & Modern Themes, Rich Display Customization, GST Engine, Scientific & Programmer calculators, Live Age Chronometer, EMI and Unit Converters.",
+                                    text = "Version 8.4 • Featuring 25+ Retro & Modern Themes, Multi-Language Internationalization, Rich Display Customization, GST & Global Tax Engine, Scientific & Programmer calculators, Live Age Chronometer, EMI and Unit Converters.",
                                     color = activeTheme.screenExpressionColor,
                                     fontSize = 13.sp,
                                     lineHeight = 18.sp
