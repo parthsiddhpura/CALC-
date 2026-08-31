@@ -22,6 +22,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -157,7 +158,7 @@ fun CalculatorDisplay(
         }
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
             .clip(screenShape)
@@ -180,9 +181,12 @@ fun CalculatorDisplay(
                     copyToClipboard(fullEquation, "Calculation")
                 }
             )
-            .padding(14.dp)
             .testTag("calculator_display")
     ) {
+        val isVeryCompact = maxHeight < 115.dp
+        val isCompact = maxHeight < 145.dp
+        val innerPadding = if (isVeryCompact) 8.dp else if (isCompact) 10.dp else 14.dp
+
         // CRT Scanline Overlay if enabled
         if (theme.hasScanlines) {
             Canvas(modifier = Modifier.matchParentSize()) {
@@ -201,7 +205,9 @@ fun CalculatorDisplay(
         }
 
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             // Top Status & Actions Row: Mode, Angle, Badges, Format indicators, Decimal Conv, Quick Copy, History
@@ -213,7 +219,7 @@ fun CalculatorDisplay(
                 if (displayConfig.showStatusBadges) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        horizontalArrangement = Arrangement.spacedBy(if (isCompact) 3.dp else 5.dp)
                     ) {
                         // Mode Badge
                         Surface(
@@ -223,10 +229,11 @@ fun CalculatorDisplay(
                             Text(
                                 text = mode.shortName.uppercase(),
                                 color = theme.accentColor,
-                                fontSize = 11.sp,
+                                fontSize = if (isCompact) 9.sp else 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = fontFamily,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                maxLines = 1,
+                                modifier = Modifier.padding(horizontal = if (isCompact) 4.dp else 6.dp, vertical = 2.dp)
                             )
                         }
 
@@ -242,10 +249,11 @@ fun CalculatorDisplay(
                                 Text(
                                     text = angleMode.name,
                                     color = theme.secondaryAccent,
-                                    fontSize = 11.sp,
+                                    fontSize = if (isCompact) 9.sp else 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = fontFamily,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    maxLines = 1,
+                                    modifier = Modifier.padding(horizontal = if (isCompact) 4.dp else 6.dp, vertical = 2.dp)
                                 )
                             }
                         }
@@ -259,10 +267,11 @@ fun CalculatorDisplay(
                                 Text(
                                     text = "M",
                                     color = Color(0xFFFFB703),
-                                    fontSize = 11.sp,
+                                    fontSize = if (isCompact) 9.sp else 11.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     fontFamily = fontFamily,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    maxLines = 1,
+                                    modifier = Modifier.padding(horizontal = if (isCompact) 4.dp else 6.dp, vertical = 2.dp)
                                 )
                             }
                         }
@@ -276,10 +285,11 @@ fun CalculatorDisplay(
                                 Text(
                                     text = if (displayConfig.notation == DisplayNotation.SCIENTIFIC) "SCI" else "ENG",
                                     color = theme.screenExpressionColor,
-                                    fontSize = 10.sp,
+                                    fontSize = if (isCompact) 8.sp else 10.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     fontFamily = fontFamily,
-                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                    maxLines = 1,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                                 )
                             }
                         }
@@ -291,7 +301,7 @@ fun CalculatorDisplay(
                 // Right Actions: Quick Copy Icon, Decimal Converter (F↔D / DEC) and History Icon
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(if (isCompact) 3.dp else 6.dp)
                 ) {
                     // Quick Copy Action Button
                     Surface(
@@ -305,14 +315,14 @@ fun CalculatorDisplay(
                             .testTag("btn_display_copy")
                     ) {
                         Box(
-                            modifier = Modifier.padding(6.dp),
+                            modifier = Modifier.padding(if (isCompact) 4.dp else 6.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = if (justCopied) Icons.Default.Done else Icons.Default.ContentCopy,
                                 contentDescription = "Copy Result",
                                 tint = if (justCopied) theme.accentColor else theme.screenExpressionColor,
-                                modifier = Modifier.size(14.dp)
+                                modifier = Modifier.size(if (isCompact) 12.dp else 14.dp)
                             )
                         }
                     }
@@ -327,21 +337,23 @@ fun CalculatorDisplay(
                                 .testTag("btn_display_decimal_conv")
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                modifier = Modifier.padding(horizontal = if (isCompact) 4.dp else 6.dp, vertical = 2.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Transform,
                                     contentDescription = "Decimal Conversion",
                                     tint = theme.accentColor,
-                                    modifier = Modifier.size(13.dp)
+                                    modifier = Modifier.size(if (isCompact) 11.dp else 13.dp)
                                 )
                                 Text(
                                     text = "F↔D",
                                     color = theme.accentColor,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold
+                                    fontSize = if (isCompact) 9.sp else 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    softWrap = false
                                 )
                             }
                         }
@@ -371,13 +383,13 @@ fun CalculatorDisplay(
                                         }
                                     }
                                 },
-                                modifier = Modifier.padding(5.dp)
+                                modifier = Modifier.padding(if (isCompact) 3.dp else 5.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.History,
                                     contentDescription = "History",
                                     tint = theme.screenTextColor,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(if (isCompact) 13.dp else 16.dp)
                                 )
                             }
                         }
@@ -385,29 +397,32 @@ fun CalculatorDisplay(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(if (isCompact) 2.dp else 6.dp))
 
             // Expression Row (with horizontal scroll)
-            val exprBaseSize = displayConfig.scaleSize.exprSp
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(exprScrollState),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Text(
-                    text = if (formattedExpr.isEmpty()) "0" else formattedExpr,
-                    color = if (formattedExpr.isEmpty()) theme.screenExpressionColor.copy(alpha = 0.4f) else theme.screenExpressionColor,
-                    fontSize = exprBaseSize.sp,
-                    fontFamily = fontFamily,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.End,
-                    maxLines = 1,
-                    modifier = Modifier.testTag("expression_text")
-                )
+            val exprBaseSize = if (isCompact) (displayConfig.scaleSize.exprSp - 4).coerceAtLeast(13) else displayConfig.scaleSize.exprSp
+            if (formattedExpr.isNotEmpty() || !isVeryCompact) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(exprScrollState),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Text(
+                        text = if (formattedExpr.isEmpty()) "0" else formattedExpr,
+                        color = if (formattedExpr.isEmpty()) theme.screenExpressionColor.copy(alpha = 0.4f) else theme.screenExpressionColor,
+                        fontSize = exprBaseSize.sp,
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.End,
+                        maxLines = 1,
+                        softWrap = false,
+                        modifier = Modifier.testTag("expression_text")
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(if (isCompact) 1.dp else 3.dp))
 
             // Main Result Row + Live Preview Result
             Column(
@@ -425,14 +440,15 @@ fun CalculatorDisplay(
                             Text(
                                 text = "= $formattedPreview",
                                 color = theme.screenPreviewColor,
-                                fontSize = (exprBaseSize - 2).coerceAtLeast(16).sp,
+                                fontSize = (exprBaseSize - 2).coerceAtLeast(14).sp,
                                 fontFamily = fontFamily,
                                 fontWeight = FontWeight.SemiBold,
                                 textAlign = TextAlign.End,
                                 maxLines = 1,
+                                softWrap = false,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier
-                                    .padding(bottom = 2.dp)
+                                    .padding(bottom = 1.dp)
                                     .testTag("preview_result_text")
                             )
                         }
@@ -440,11 +456,17 @@ fun CalculatorDisplay(
                 }
 
                 // Main Result with smooth responsive scale
-                val baseSp = displayConfig.scaleSize.resultSp.toFloat()
+                val baseSp = if (isVeryCompact) {
+                    32f
+                } else if (isCompact) {
+                    (displayConfig.scaleSize.resultSp.toFloat() - 8f).coerceAtLeast(34f)
+                } else {
+                    displayConfig.scaleSize.resultSp.toFloat()
+                }
                 val targetSp = when {
-                    formattedResult.length > 16 -> (baseSp - 24f).coerceAtLeast(24f)
-                    formattedResult.length > 12 -> (baseSp - 16f).coerceAtLeast(28f)
-                    formattedResult.length > 8 -> (baseSp - 8f).coerceAtLeast(34f)
+                    formattedResult.length > 16 -> (baseSp - 20f).coerceAtLeast(20f)
+                    formattedResult.length > 12 -> (baseSp - 14f).coerceAtLeast(24f)
+                    formattedResult.length > 8 -> (baseSp - 8f).coerceAtLeast(28f)
                     else -> baseSp
                 }
                 val animatedSp by animateFloatAsState(
@@ -461,6 +483,7 @@ fun CalculatorDisplay(
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.End,
                     maxLines = 1,
+                    softWrap = false,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.testTag("main_result_text")
                 )

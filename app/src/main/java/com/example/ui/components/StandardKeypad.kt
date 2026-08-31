@@ -24,9 +24,9 @@ fun StandardKeypad(
     modifier: Modifier = Modifier
 ) {
     val haptics = LocalHapticFeedback.current
-    val rowSpacing = 10.dp
-    val colSpacing = 10.dp
-    val keyHeight = 64.dp
+    val rowSpacing = 8.dp
+    val colSpacing = 8.dp
+    val keyHeight = 58.dp
 
     Column(
         modifier = modifier.fillMaxWidth(),

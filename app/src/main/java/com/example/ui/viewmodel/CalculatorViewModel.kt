@@ -428,15 +428,27 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             ButtonShapeType.BRUTALIST_RECT -> 4.dp
             null -> base.cornerRadiusDp
         }
+        val contrastText = if (customAccent != null) {
+            val lum = (0.299 * customAccent.red + 0.587 * customAccent.green + 0.114 * customAccent.blue)
+            if (lum > 0.55) Color(0xFF0F172A) else Color.White
+        } else null
+
         return base.copy(
             accentColor = customAccent ?: base.accentColor,
             shapeType = shape,
             displayFont = font,
             cornerRadiusDp = radius,
             hasScanlines = scanlines,
+            operatorButtonBg = customAccent ?: base.operatorButtonBg,
+            operatorButtonText = contrastText ?: base.operatorButtonText,
+            operatorButtonBorder = if (customAccent != null) {
+                if (base.borderWidthDp > 0.dp && base.isBrutalistShadow) base.operatorButtonBorder else Color.Transparent
+            } else base.operatorButtonBorder,
             equalsButtonBrush = if (customAccent != null) {
                 Brush.linearGradient(listOf(customAccent, customAccent.copy(alpha = 0.85f)))
-            } else base.equalsButtonBrush
+            } else base.equalsButtonBrush,
+            equalsButtonText = contrastText ?: base.equalsButtonText,
+            glowColor = if (customAccent != null) customAccent.copy(alpha = 0.45f) else base.glowColor
         )
     }
 

@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -179,14 +182,15 @@ fun MoreModesSheet(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Modes Grid
-            Column(
+            // Modes List (Scrollable on any screen)
+            LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(bottom = 36.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp)
+                    .navigationBarsPadding()
             ) {
-                MORE_MODES.forEach { item ->
+                items(MORE_MODES, key = { it.mode.name }) { item ->
                     val isSelected = item.mode == activeMode
                     Surface(
                         shape = RoundedCornerShape(14.dp),

@@ -33,10 +33,10 @@ fun ScientificKeypad(
     onMemoryClear: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val rowSpacing = 6.dp
-    val colSpacing = 6.dp
-    val sciKeyHeight = 44.dp
-    val stdKeyHeight = 52.dp
+    val rowSpacing = 3.dp
+    val colSpacing = 3.dp
+    val sciKeyHeight = 32.dp
+    val stdKeyHeight = 40.dp
 
     Column(
         modifier = modifier.fillMaxWidth(),
