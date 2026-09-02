@@ -20,9 +20,9 @@ enum class DisplayPrecisionMode(val displayName: String, val decimalPlaces: Int?
 }
 
 enum class DisplayScaleSize(val displayName: String, val resultSp: Int, val exprSp: Int) {
-    COMPACT("Compact", 42, 20),
-    STANDARD("Standard", 56, 24),
-    LARGE("Large", 64, 28)
+    COMPACT("Compact", 58, 26),
+    STANDARD("Standard", 78, 34),
+    LARGE("Large", 92, 40)
 }
 
 enum class DisplayNotation(val displayName: String, val sample: String) {

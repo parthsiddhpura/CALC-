@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="12dp">
+
+    <!-- Header / Brand & Mode -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="CALC +"
+            android:textColor="#00E5FF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_timestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quick Widget"
+            android:textColor="#9E9E9E"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <!-- Display Screen -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/widget_screen_bg"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/widget_expression"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tap to calculate"
+            android:textColor="#80FFFFFF"
+            android:textSize="12sp"
+            android:gravity="end"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/widget_result"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:gravity="end"
+            android:singleLine="true" />
+    </LinearLayout>
+
+    <!-- Quick Action Launch Buttons Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btn_launch_calc"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_btn_bg"
+            android:gravity="center"
+            android:text="Calculator"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="4dp" />
+
+        <TextView
+            android:id="@+id/btn_launch_gst"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_btn_bg"
+            android:gravity="center"
+            android:text="GST Tax"
+            android:textColor="#00E5FF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp" />
+
+        <TextView
+            android:id="@+id/btn_launch_chains"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_btn_bg"
+            android:gravity="center"
+            android:text="Chains"
+            android:textColor="#FFB703"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="2dp" />
+
+        <TextView
+            android:id="@+id/btn_launch_ai"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_btn_bg"
+            android:gravity="center"
+            android:text="AI Copilot"
+            android:textColor="#FF4081"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginStart="4dp" />
+    </LinearLayout>
+</LinearLayout>

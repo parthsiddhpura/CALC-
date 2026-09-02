@@ -34,7 +34,31 @@ enum class ThemeId {
     MIDNIGHT_TOKYO,
     EMERALD_FOREST,
     STEAMPUNK_BRASS,
-    COTTON_CANDY
+    COTTON_CANDY,
+    DRACULA_VAMPIRIC,
+    DEEP_SPACE_SAPPHIRE,
+    ABYSSAL_CRIMSON,
+    CYBER_MATRIX_GOLD,
+    NORD_POLAR_NIGHT,
+    NEON_VOID,
+    QUANTUM_SUPERCONDUCTOR,
+    BATMAN_DARK_KNIGHT,
+    BIOLUMINESCENT_ABYSS,
+    ARCADE_PHOSPHOR_84,
+    PHANTOM_STEALTH,
+    NEUMORPHIC_ICE_LIGHT,
+    NEUMORPHIC_MIDNIGHT_AZURE,
+    MIDNIGHT_OCEAN_RADIAL,
+    MINIMAL_POWDER_BLUE,
+    OBSIDIAN_TANGERINE,
+    OBSIDIAN_EMERALD,
+    OBSIDIAN_COBALT,
+    KAWAII_CLAY_PINK,
+    KAWAII_MATCHA_CLAY,
+    RETRO_MACARON_TYPEWRITER,
+    RETRO_TYPEWRITER_SAGE,
+    INDUSTRIAL_AMBER_BEZEL,
+    INDUSTRIAL_CYAN_BEZEL
 }
 
 enum class ButtonShapeType {
@@ -81,6 +105,7 @@ data class ThemePalette(
     val cursorColor: Color,
     val displayFont: DisplayFontType,
     val hasScanlines: Boolean = false,
+    val hasBatSignal: Boolean = false,
     
     // Keypad - Number Keys (0-9, .)
     val numberButtonBg: Color,

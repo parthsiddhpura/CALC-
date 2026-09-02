@@ -82,7 +82,7 @@ fun ThemePickerSheet(
     var searchQuery by remember { mutableStateOf("") }
     var filterMode by remember { mutableStateOf("All") } // "All", "Dark Only", "Light Only"
 
-    val categories = listOf("All", "Futuristic", "Retro", "Modern Art", "Minimal & Aesthetic", "Atmospheric", "Playful", "Luxury & Clean")
+    val categories = listOf("All", "Neumorphic & Glass", "Interactive Dark", "Retro", "Playful", "Minimal & Aesthetic", "Futuristic", "Modern Art", "Atmospheric", "Luxury & Clean")
 
     val filteredThemes = remember(selectedCategory, searchQuery, filterMode) {
         CalculatorThemes.allThemes.filter { theme ->
@@ -459,6 +459,30 @@ fun ThemeCard(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
+                    if (theme.hasBatSignal) {
+                        Surface(
+                            color = Color(0x33FFE500),
+                            shape = RoundedCornerShape(6.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, Color(0x88FFE500))
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            ) {
+                                BatmanLogoIcon(
+                                    modifier = Modifier.size(10.dp),
+                                    tint = Color(0xFFFFE500)
+                                )
+                                Text(
+                                    text = "BAT-SIGNAL",
+                                    color = Color(0xFFFFE500),
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                     Surface(
                         color = theme.accentColor.copy(alpha = 0.2f),
                         shape = RoundedCornerShape(6.dp)
@@ -525,13 +549,20 @@ fun ThemeCard(
                             .border(0.5.dp, theme.screenBorderColor, RoundedCornerShape(4.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "${42 + testTapCounter}",
-                            color = theme.screenTextColor,
-                            fontSize = 8.sp,
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold
-                        )
+                        if (theme.hasBatSignal) {
+                            BatmanLogoIcon(
+                                modifier = Modifier.size(16.dp),
+                                tint = Color(0xFFFFE500)
+                            )
+                        } else {
+                            Text(
+                                text = "${42 + testTapCounter}",
+                                color = theme.screenTextColor,
+                                fontSize = 8.sp,
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
 
                     // Mini Number button

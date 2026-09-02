@@ -420,13 +420,19 @@ fun GstCalculatorView(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "${LanguageStrings.totalTax(language)} (${currentResult.gstRate}%)",
+                                            text = if (currentResult.type == GstCalculationType.INCLUSIVE)
+                                                "Extracted GST (${currentResult.gstRate}%)"
+                                            else
+                                                "${LanguageStrings.totalTax(language)} (${currentResult.gstRate}%)",
                                             color = theme.screenExpressionColor,
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.SemiBold
                                         )
                                         Text(
-                                            text = "+${GstEngine.formatCurrency(currentResult.gstAmount)}",
+                                            text = if (currentResult.type == GstCalculationType.INCLUSIVE)
+                                                "-${GstEngine.formatCurrency(currentResult.gstAmount)}"
+                                            else
+                                                "+${GstEngine.formatCurrency(currentResult.gstAmount)}",
                                             color = theme.accentColor,
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.Black,
@@ -487,12 +493,15 @@ fun GstCalculatorView(
 
                                     Column(horizontalAlignment = Alignment.End) {
                                         Text(
-                                            text = LanguageStrings.totalTax(language),
+                                            text = if (currentResult.type == GstCalculationType.INCLUSIVE) "Extracted GST" else LanguageStrings.totalTax(language),
                                             color = theme.screenExpressionColor,
                                             fontSize = 10.sp
                                         )
                                         Text(
-                                            text = "+${GstEngine.formatCurrency(currentResult.gstAmount)}",
+                                            text = if (currentResult.type == GstCalculationType.INCLUSIVE)
+                                                "-${GstEngine.formatCurrency(currentResult.gstAmount)}"
+                                            else
+                                                "+${GstEngine.formatCurrency(currentResult.gstAmount)}",
                                             color = theme.accentColor,
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Black,
@@ -502,31 +511,53 @@ fun GstCalculatorView(
                                 }
                             }
 
-                            // Emphasized Gross Total Banner
+                            // Emphasized Gross Total Banner (Shows on both Extract & Add mode)
                             Surface(
                                 shape = RoundedCornerShape(10.dp),
-                                color = theme.surfaceColor.copy(alpha = 0.7f),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, theme.accentColor.copy(alpha = 0.4f)),
+                                color = if (currentResult.type == GstCalculationType.INCLUSIVE)
+                                    theme.accentColor.copy(alpha = 0.15f)
+                                else
+                                    theme.surfaceColor.copy(alpha = 0.7f),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, theme.accentColor.copy(alpha = 0.6f)),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                                        .padding(horizontal = 10.dp, vertical = 6.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = LanguageStrings.totalGross(language),
-                                        color = theme.screenExpressionColor,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        letterSpacing = 0.5.sp
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Text(
+                                            text = LanguageStrings.totalGross(language),
+                                            color = theme.screenTextColor,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            letterSpacing = 0.5.sp
+                                        )
+                                        if (currentResult.type == GstCalculationType.INCLUSIVE) {
+                                            Surface(
+                                                shape = RoundedCornerShape(4.dp),
+                                                color = theme.accentColor
+                                            ) {
+                                                Text(
+                                                    text = "EXTRACTED",
+                                                    color = theme.backgroundColor,
+                                                    fontSize = 9.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                                )
+                                            }
+                                        }
+                                    }
                                     Text(
                                         text = GstEngine.formatCurrency(currentResult.grossAmount),
                                         color = theme.secondaryAccent,
-                                        fontSize = 17.sp,
+                                        fontSize = 18.sp,
                                         fontWeight = FontWeight.Black,
                                         fontFamily = FontFamily.Monospace
                                     )

@@ -23,7 +23,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Cake
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Check
@@ -32,6 +34,7 @@ import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.CurrencyExchange
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -56,10 +59,31 @@ data class ModeItemData(
     val mode: CalculatorMode,
     val title: String,
     val description: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val badgeText: String? = null
 )
 
 val MORE_MODES = listOf(
+    ModeItemData(
+        mode = CalculatorMode.CUSTOM_BUILDER,
+        title = "Build Me a Calculator",
+        description = "Describe a calculation in plain English → AI builds an interactive tool with sliders & saves it",
+        icon = Icons.Default.AutoAwesome,
+        badgeText = "BETA"
+    ),
+    ModeItemData(
+        mode = CalculatorMode.CALCULATION_CHAINS,
+        title = "Calculation Chains & Reactive Flow",
+        description = "Salary → Expenses → Savings → SIP → 15-Yr Wealth. Change one value & cascade updates",
+        icon = Icons.Default.AccountTree
+    ),
+    ModeItemData(
+        mode = CalculatorMode.AI_COPILOT,
+        title = "AI Math Copilot & Step Solver",
+        description = "Ask equations, GST discounts, natural language math with step-by-step proofs",
+        icon = Icons.Default.Psychology,
+        badgeText = "BETA"
+    ),
     ModeItemData(
         mode = CalculatorMode.BMI_CALCULATOR,
         title = "BMI Calculator",
@@ -234,13 +258,41 @@ fun MoreModesSheet(
                                     }
                                 }
 
-                                Column {
-                                    Text(
-                                        text = item.title,
-                                        color = theme.screenTextColor,
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
+                                Column(modifier = Modifier.weight(1f, fill = false)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            text = item.title,
+                                            color = theme.screenTextColor,
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.weight(1f, fill = false)
+                                        )
+                                        if (item.badgeText != null) {
+                                            Surface(
+                                                shape = RoundedCornerShape(4.dp),
+                                                color = theme.accentColor.copy(alpha = 0.18f),
+                                                border = androidx.compose.foundation.BorderStroke(
+                                                    0.8.dp,
+                                                    theme.accentColor.copy(alpha = 0.5f)
+                                                )
+                                            ) {
+                                                Text(
+                                                    text = item.badgeText,
+                                                    color = theme.accentColor,
+                                                    fontSize = 8.5.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    letterSpacing = 0.5.sp,
+                                                    maxLines = 1,
+                                                    softWrap = false,
+                                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                        }
+                                    }
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = item.description,

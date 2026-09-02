@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -51,8 +52,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.domain.LanguageStrings
 import com.example.model.CalculatorMode
 import com.example.ui.components.AgeCalculatorView
+import com.example.ui.components.AiMathCopilotView
+import com.example.ui.components.BatmanLogoIcon
+import com.example.ui.components.BatmanScreenBackground
 import com.example.ui.components.BmiCalculatorView
+import com.example.ui.components.CalculationChainsView
 import com.example.ui.components.CalculatorDisplay
+import com.example.ui.components.CustomCalculatorBuilderView
 import com.example.ui.components.DecimalConverterSheet
 import com.example.ui.components.EditNoteDialog
 import com.example.ui.components.EmiCalculatorView
@@ -97,7 +103,12 @@ fun CalculatorScreen(
                 .fillMaxSize()
                 .background(theme.backgroundBrush)
                 .padding(innerPadding)
+                .imePadding()
         ) {
+            if (theme.hasBatSignal) {
+                BatmanScreenBackground(modifier = Modifier.fillMaxSize())
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -119,11 +130,18 @@ fun CalculatorScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = theme.accentColor,
-                                modifier = Modifier.size(10.dp)
-                            ) {}
+                            if (theme.hasBatSignal) {
+                                BatmanLogoIcon(
+                                    modifier = Modifier.size(16.dp),
+                                    tint = theme.accentColor
+                                )
+                            } else {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = theme.accentColor,
+                                    modifier = Modifier.size(10.dp)
+                                ) {}
+                            }
 
                             Text(
                                 text = "CALC +",
@@ -511,6 +529,37 @@ fun CalculatorScreen(
                             CalculatorMode.ENGINEERING -> {
                                 EngineeringCalculatorView(
                                     theme = theme,
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+
+                            CalculatorMode.CUSTOM_BUILDER -> {
+                                CustomCalculatorBuilderView(
+                                    theme = theme,
+                                    calculatorsList = uiState.customCalculators,
+                                    activeCalculator = uiState.activeCustomCalculator,
+                                    onSelectCalculator = { viewModel.selectCustomCalculator(it) },
+                                    onSaveCustomCalculator = { viewModel.saveCustomCalculator(it) },
+                                    onDeleteCustomCalculator = { viewModel.deleteCustomCalculator(it) },
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+
+                            CalculatorMode.CALCULATION_CHAINS -> {
+                                CalculationChainsView(
+                                    theme = theme,
+                                    chainsList = uiState.calculationChains,
+                                    activeChain = uiState.activeCalculationChain,
+                                    onSelectChain = { viewModel.selectCalculationChain(it) },
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+
+                            CalculatorMode.AI_COPILOT -> {
+                                AiMathCopilotView(
+                                    theme = theme,
+                                    onNavigateMode = { viewModel.setMode(it) },
+                                    onLoadToExpression = { viewModel.onLoadCopilotExpression(it) },
                                     modifier = Modifier.padding(vertical = 4.dp)
                                 )
                             }

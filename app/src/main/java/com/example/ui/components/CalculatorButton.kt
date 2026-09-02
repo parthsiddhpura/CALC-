@@ -58,7 +58,8 @@ fun CalculatorButton(
     fontWeight: FontWeight = FontWeight.SemiBold,
     isSpanTwo: Boolean = false,
     contentDescription: String? = null,
-    testTag: String = "btn_$text"
+    testTag: String = "btn_$text",
+    icon: (@Composable () -> Unit)? = null
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -98,8 +99,9 @@ fun CalculatorButton(
 
     val animatedBgColor by animateColorAsState(
         targetValue = if (isPressed) {
-            when (theme.pressAnimation) {
-                PressAnimationType.NEON_GLOW -> theme.accentColor.copy(alpha = 0.35f)
+            when {
+                theme.hasBatSignal -> Color(0xFF283344)
+                theme.pressAnimation == PressAnimationType.NEON_GLOW -> theme.accentColor.copy(alpha = 0.35f)
                 else -> backgroundColor.copy(alpha = 0.82f)
             }
         } else backgroundColor,
@@ -183,12 +185,12 @@ fun CalculatorButton(
                     }
                 )
                 .then(
-                    if (borderWidth > 0.dp || (isPressed && theme.pressAnimation == PressAnimationType.NEON_GLOW)) {
-                        val activeBorderColor = if (isPressed && theme.pressAnimation == PressAnimationType.NEON_GLOW) {
+                    if (borderWidth > 0.dp || (isPressed && (theme.pressAnimation == PressAnimationType.NEON_GLOW || theme.hasBatSignal))) {
+                        val activeBorderColor = if (isPressed && (theme.pressAnimation == PressAnimationType.NEON_GLOW || theme.hasBatSignal)) {
                             theme.accentColor
                         } else borderColor
-                        val activeWidth = if (isPressed && theme.pressAnimation == PressAnimationType.NEON_GLOW) {
-                            borderWidth + 1.dp
+                        val activeWidth = if (isPressed && (theme.pressAnimation == PressAnimationType.NEON_GLOW || theme.hasBatSignal)) {
+                            borderWidth + 1.2.dp
                         } else borderWidth
                         Modifier.border(activeWidth, activeBorderColor, shape)
                     } else Modifier
@@ -201,15 +203,19 @@ fun CalculatorButton(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = text,
-                color = textColor,
-                fontSize = fontSize,
-                fontWeight = fontWeight,
-                fontFamily = fontFamily,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-            )
+            if (icon != null) {
+                icon()
+            } else {
+                Text(
+                    text = text,
+                    color = textColor,
+                    fontSize = fontSize,
+                    fontWeight = fontWeight,
+                    fontFamily = fontFamily,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                )
+            }
         }
     }
 }

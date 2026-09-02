@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
@@ -237,7 +240,26 @@ fun StandardKeypad(
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
                 modifier = Modifier.weight(1f),
-                testTag = "btn_equals"
+                testTag = "btn_equals",
+                icon = if (theme.hasBatSignal) {
+                    {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            BatmanLogoIcon(
+                                modifier = Modifier.size(20.dp),
+                                tint = theme.equalsButtonText
+                            )
+                            Text(
+                                text = "=",
+                                color = theme.equalsButtonText,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    }
+                } else null
             )
         }
     }

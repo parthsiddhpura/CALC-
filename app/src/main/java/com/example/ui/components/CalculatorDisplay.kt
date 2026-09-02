@@ -183,9 +183,16 @@ fun CalculatorDisplay(
             )
             .testTag("calculator_display")
     ) {
-        val isVeryCompact = maxHeight < 115.dp
-        val isCompact = maxHeight < 145.dp
-        val innerPadding = if (isVeryCompact) 8.dp else if (isCompact) 10.dp else 14.dp
+        val isVeryCompact = maxHeight < 120.dp
+        val isCompact = maxHeight < 170.dp
+        val innerPadding = if (isVeryCompact) 6.dp else if (isCompact) 8.dp else 12.dp
+
+        // Responsive font scaling factors based on actual available display height
+        val heightFactor = (maxHeight.value / 200f).coerceIn(0.60f, 1.15f)
+        val configResultSp = displayConfig.scaleSize.resultSp.toFloat()
+        val configExprSp = displayConfig.scaleSize.exprSp.toFloat()
+        val baseSp = configResultSp * heightFactor
+        val exprBaseSize = (configExprSp * heightFactor).toInt().coerceAtLeast(16)
 
         // CRT Scanline Overlay if enabled
         if (theme.hasScanlines) {
@@ -204,6 +211,11 @@ fun CalculatorDisplay(
             }
         }
 
+        // Batman Display Overlay (Bat-Signal searchlight, insignia, and tactile responses)
+        if (theme.hasBatSignal) {
+            BatmanDisplayOverlay(modifier = Modifier.matchParentSize())
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -219,7 +231,8 @@ fun CalculatorDisplay(
                 if (displayConfig.showStatusBadges) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(if (isCompact) 3.dp else 5.dp)
+                        horizontalArrangement = Arrangement.spacedBy(if (isCompact) 3.dp else 5.dp),
+                        modifier = Modifier.weight(1f, fill = false)
                     ) {
                         // Mode Badge
                         Surface(
@@ -235,6 +248,34 @@ fun CalculatorDisplay(
                                 maxLines = 1,
                                 modifier = Modifier.padding(horizontal = if (isCompact) 4.dp else 6.dp, vertical = 2.dp)
                             )
+                        }
+
+                        // Wayne Tech HUD Badge for Batman Theme
+                        if (theme.hasBatSignal) {
+                            Surface(
+                                color = Color(0x33FFE500),
+                                shape = RoundedCornerShape(6.dp),
+                                border = androidx.compose.foundation.BorderStroke(0.8.dp, Color(0x66FFE500))
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                    modifier = Modifier.padding(horizontal = if (isCompact) 4.dp else 6.dp, vertical = 2.dp)
+                                ) {
+                                    BatmanLogoIcon(
+                                        modifier = Modifier.size(if (isCompact) 11.dp else 13.dp),
+                                        tint = Color(0xFFFFE500)
+                                    )
+                                    Text(
+                                        text = "WAYNE TECH",
+                                        color = Color(0xFFFFE500),
+                                        fontSize = if (isCompact) 8.sp else 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = fontFamily,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
                         }
 
                         // Angle Mode Badge (DEG / RAD) - Tap to toggle!
@@ -397,10 +438,9 @@ fun CalculatorDisplay(
                 }
             }
 
-            Spacer(modifier = Modifier.height(if (isCompact) 2.dp else 6.dp))
+            Spacer(modifier = Modifier.height(if (isCompact) 2.dp else 4.dp))
 
             // Expression Row (with horizontal scroll)
-            val exprBaseSize = if (isCompact) (displayConfig.scaleSize.exprSp - 4).coerceAtLeast(13) else displayConfig.scaleSize.exprSp
             if (formattedExpr.isNotEmpty() || !isVeryCompact) {
                 Box(
                     modifier = Modifier
@@ -412,6 +452,7 @@ fun CalculatorDisplay(
                         text = if (formattedExpr.isEmpty()) "0" else formattedExpr,
                         color = if (formattedExpr.isEmpty()) theme.screenExpressionColor.copy(alpha = 0.4f) else theme.screenExpressionColor,
                         fontSize = exprBaseSize.sp,
+                        lineHeight = exprBaseSize.sp,
                         fontFamily = fontFamily,
                         fontWeight = FontWeight.Medium,
                         textAlign = TextAlign.End,
@@ -422,12 +463,13 @@ fun CalculatorDisplay(
                 }
             }
 
-            Spacer(modifier = Modifier.height(if (isCompact) 1.dp else 3.dp))
+            Spacer(modifier = Modifier.height(if (isCompact) 1.dp else 2.dp))
 
             // Main Result Row + Live Preview Result
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.End
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 // Live preview if enabled and available
                 if (displayConfig.showLivePreview) {
@@ -440,7 +482,8 @@ fun CalculatorDisplay(
                             Text(
                                 text = "= $formattedPreview",
                                 color = theme.screenPreviewColor,
-                                fontSize = (exprBaseSize - 2).coerceAtLeast(14).sp,
+                                fontSize = (exprBaseSize - 2).coerceAtLeast(16).sp,
+                                lineHeight = (exprBaseSize - 2).coerceAtLeast(16).sp,
                                 fontFamily = fontFamily,
                                 fontWeight = FontWeight.SemiBold,
                                 textAlign = TextAlign.End,
@@ -455,18 +498,12 @@ fun CalculatorDisplay(
                     }
                 }
 
-                // Main Result with smooth responsive scale
-                val baseSp = if (isVeryCompact) {
-                    32f
-                } else if (isCompact) {
-                    (displayConfig.scaleSize.resultSp.toFloat() - 8f).coerceAtLeast(34f)
-                } else {
-                    displayConfig.scaleSize.resultSp.toFloat()
-                }
+                // Main Result with smooth responsive scale proportional to actual container height and digit count
                 val targetSp = when {
-                    formattedResult.length > 16 -> (baseSp - 20f).coerceAtLeast(20f)
-                    formattedResult.length > 12 -> (baseSp - 14f).coerceAtLeast(24f)
-                    formattedResult.length > 8 -> (baseSp - 8f).coerceAtLeast(28f)
+                    formattedResult.length > 20 -> (baseSp * 0.42f).coerceAtLeast(24f)
+                    formattedResult.length > 15 -> (baseSp * 0.55f).coerceAtLeast(28f)
+                    formattedResult.length > 11 -> (baseSp * 0.70f).coerceAtLeast(34f)
+                    formattedResult.length > 8  -> (baseSp * 0.85f).coerceAtLeast(42f)
                     else -> baseSp
                 }
                 val animatedSp by animateFloatAsState(
@@ -479,6 +516,7 @@ fun CalculatorDisplay(
                     text = formattedResult,
                     color = theme.screenTextColor,
                     fontSize = animatedSp.sp,
+                    lineHeight = animatedSp.sp,
                     fontFamily = fontFamily,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.End,

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CALC +</string>
+    <string name="widget_description">CALC + quick launch and calculation widget</string>
 </resources>

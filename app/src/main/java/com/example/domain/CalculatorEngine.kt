@@ -52,9 +52,9 @@ object CalculatorEngine {
             balanced += ")".repeat(openCount - closeCount)
         }
 
-        // Remove trailing operator if user just typed it
+        // Remove trailing operator if user just typed it (excluding % which is a complete postfix operator)
         val lastChar = balanced.lastOrNull()
-        if (lastChar != null && "+−-×*÷/^%".contains(lastChar)) {
+        if (lastChar != null && "+−-×*÷/^".contains(lastChar)) {
             balanced = balanced.dropLast(1).trim()
             if (balanced.isBlank()) return null
         }
@@ -84,9 +84,30 @@ object CalculatorEngine {
             .replace("acos", "arccos")
             .replace("atan", "arctan")
 
+        // Handle letter 'x' or 'X' as multiplication (e.g. 7x10% -> 7*10%)
+        s = s.replace(Regex("(?<=[0-9)πeφ%])\\s*[xX]\\s*(?=[0-9(πeφ])"), "*")
+
         // Handle implicit multiplication using precompiled regexes
         s = s.replace(IMPLICIT_REGEX, "$1*$2")
         s = s.replace(NUM_CONST_REGEX, "$1*$2")
+
+        // Implicit multiplication after percent (e.g. 10%7 -> 10%*7, 10%(5) -> 10%*(5))
+        s = s.replace(Regex("%\\s*([0-9(PIEPHIsqrtcbrtsincostan])"), "%*$1")
+
+        // Handle percentage addition and subtraction markup/discount:
+        // A + B% -> (A + (A * (B%)))
+        // A - B% -> (A - (A * (B%)))
+        val markupRegex = Regex("(?<=^|[+\\-*/^(])\\s*([0-9.]+|\\([^()]+\\))\\s*([+-])\\s*([0-9.]+|\\([^()]+\\))%")
+        var prev = ""
+        while (prev != s && markupRegex.containsMatchIn(s)) {
+            prev = s
+            s = s.replace(markupRegex) { mr ->
+                val a = mr.groupValues[1]
+                val op = mr.groupValues[2]
+                val b = mr.groupValues[3]
+                "($a $op ($a * ($b%)))"
+            }
+        }
 
         return s
     }
@@ -147,7 +168,7 @@ object CalculatorEngine {
     }
 
     private fun isOperator(token: String): Boolean {
-        return token in listOf("+", "-", "*", "/", "^", "%", "NEG", "!")
+        return token in listOf("+", "-", "*", "/", "^", "NEG")
     }
 
     private fun isFunction(token: String): Boolean {
@@ -160,9 +181,8 @@ object CalculatorEngine {
     private fun precedence(op: String): Int {
         return when (op) {
             "NEG" -> 5
-            "!" -> 5
             "^" -> 4
-            "*", "/", "%" -> 3
+            "*", "/" -> 3
             "+", "-" -> 2
             else -> 0
         }
@@ -175,6 +195,10 @@ object CalculatorEngine {
         for (token in tokens) {
             when {
                 token.toDoubleOrNull() != null || token == "PI" || token == "E" || token == "PHI" -> {
+                    output.add(token)
+                }
+                token == "!" || token == "%" -> {
+                    // Unary postfix operators apply directly to the preceding operand in RPN
                     output.add(token)
                 }
                 isFunction(token) -> {
@@ -230,6 +254,10 @@ object CalculatorEngine {
                     val a = if (stack.isNotEmpty()) stack.pop() else 0.0
                     stack.push(factorial(a))
                 }
+                token == "%" -> {
+                    val a = if (stack.isNotEmpty()) stack.pop() else 0.0
+                    stack.push(a / 100.0)
+                }
                 isFunction(token) -> {
                     val a = if (stack.isNotEmpty()) stack.pop() else 0.0
                     val res = when (token) {
@@ -272,7 +300,6 @@ object CalculatorEngine {
                             a / b
                         }
                         "^" -> a.pow(b)
-                        "%" -> a % b
                         else -> 0.0
                     }
                     stack.push(res)

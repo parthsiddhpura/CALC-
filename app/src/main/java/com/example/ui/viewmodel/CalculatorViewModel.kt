@@ -39,7 +39,11 @@ import com.example.model.ThemeId
 import com.example.model.ThemePalette
 import com.example.model.UnitCategory
 import com.example.model.UnitConverterData
+import com.example.domain.CalculationChainEngine
+import com.example.domain.CustomCalculatorEngine
 import com.example.domain.TaxPreset
+import com.example.model.CalculationChain
+import com.example.model.CustomCalculator
 import com.example.ui.theme.CalculatorThemes
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -62,7 +66,7 @@ import kotlin.random.Random
 
 data class CalculatorUiState(
     val mode: CalculatorMode = CalculatorMode.STANDARD,
-    val currentThemeId: ThemeId = ThemeId.MAC_CLASSIC_1984,
+    val currentThemeId: ThemeId = ThemeId.BATMAN_DARK_KNIGHT,
     val customAccentColor: Long? = null,
     val customShapeType: ButtonShapeType? = null,
     val customDisplayFont: DisplayFontType? = null,
@@ -158,7 +162,15 @@ data class CalculatorUiState(
     val tipPeopleCount: Int = 2,
     val tipAmount: Double = 9.0,
     val tipTotal: Double = 59.0,
-    val tipPerPerson: Double = 29.5
+    val tipPerPerson: Double = 29.5,
+
+    // Custom Calculator Engine State
+    val customCalculators: List<CustomCalculator> = CustomCalculatorEngine.BUILTIN_CALCULATORS,
+    val activeCustomCalculator: CustomCalculator = CustomCalculatorEngine.BUILTIN_CALCULATORS[0],
+
+    // Calculation Chains State
+    val calculationChains: List<CalculationChain> = CalculationChainEngine.BUILTIN_CHAINS,
+    val activeCalculationChain: CalculationChain = CalculationChainEngine.BUILTIN_CHAINS[0]
 )
 
 class CalculatorViewModel(application: Application) : AndroidViewModel(application) {
@@ -184,10 +196,10 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             try {
                 ThemeId.valueOf(savedThemeName)
             } catch (e: Exception) {
-                ThemeId.MAC_CLASSIC_1984
+                ThemeId.BATMAN_DARK_KNIGHT
             }
         } else {
-            ThemeId.MAC_CLASSIC_1984
+            ThemeId.BATMAN_DARK_KNIGHT
         }
         val savedSound = prefs.getBoolean("saved_sound_enabled", true)
         val savedHaptics = prefs.getBoolean("saved_haptics_enabled", true)
@@ -567,7 +579,11 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                     newExpr = char
                 }
             } else {
-                newExpr += char
+                if (char == "%" && newExpr.isEmpty()) {
+                    newExpr = "0%"
+                } else {
+                    newExpr += char
+                }
             }
 
             val preview = CalculatorEngine.evaluatePreview(newExpr, state.angleMode)
@@ -678,6 +694,15 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                     result = evaluated,
                     mode = state.mode.name
                 )
+            }
+            try {
+                com.example.widget.CalculatorAppWidgetProvider.sendUpdateBroadcast(
+                    getApplication(),
+                    state.expression,
+                    evaluated
+                )
+            } catch (e: Exception) {
+                // Ignore widget broadcast errors if any
             }
         }
 
@@ -1386,6 +1411,46 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         val converted = CurrencyRepository.convert(amount, from, to)
         val df = DecimalFormat("#,##0.00##", DecimalFormatSymbols(Locale.US))
         return df.format(converted)
+    }
+
+    fun selectCustomCalculator(calculator: CustomCalculator) {
+        _uiState.update { it.copy(activeCustomCalculator = calculator) }
+    }
+
+    fun saveCustomCalculator(calculator: CustomCalculator) {
+        _uiState.update {
+            val updatedList = if (it.customCalculators.any { c -> c.id == calculator.id }) {
+                it.customCalculators.map { c -> if (c.id == calculator.id) calculator else c }
+            } else {
+                listOf(calculator) + it.customCalculators
+            }
+            it.copy(customCalculators = updatedList, activeCustomCalculator = calculator)
+        }
+    }
+
+    fun deleteCustomCalculator(calculatorId: String) {
+        _uiState.update {
+            val updatedList = it.customCalculators.filter { c -> c.id != calculatorId }
+            val fallback = updatedList.firstOrNull() ?: CustomCalculatorEngine.BUILTIN_CALCULATORS[0]
+            it.copy(
+                customCalculators = updatedList.ifEmpty { CustomCalculatorEngine.BUILTIN_CALCULATORS },
+                activeCustomCalculator = fallback
+            )
+        }
+    }
+
+    fun selectCalculationChain(chain: CalculationChain) {
+        _uiState.update { it.copy(activeCalculationChain = chain) }
+    }
+
+    fun onLoadCopilotExpression(expr: String) {
+        _uiState.update {
+            it.copy(
+                expression = expr,
+                result = "0",
+                mode = CalculatorMode.STANDARD
+            )
+        }
     }
 
     private fun Double.roundToInt(): Int = kotlin.math.round(this).toInt()

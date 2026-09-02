@@ -11,7 +11,10 @@ enum class CalculatorMode(val title: String, val shortName: String) {
     PROGRAMMER("Programmer", "Prog"),
     UNIT_CONVERTER("Unit Converter", "Convert"),
     TIP_SPLIT("Tip & Split", "Tip"),
-    ENGINEERING("Engineering", "Eng")
+    ENGINEERING("Engineering", "Eng"),
+    CUSTOM_BUILDER("Build a Calc", "Builder"),
+    CALCULATION_CHAINS("Chains & Flow", "Chains"),
+    AI_COPILOT("AI Math Copilot", "AI Copilot")
 }
 
 enum class AngleMode {

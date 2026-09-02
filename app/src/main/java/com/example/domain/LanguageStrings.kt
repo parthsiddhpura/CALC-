@@ -19,6 +19,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "Unit Converter"
                 CalculatorMode.TIP_SPLIT -> "Tip & Split"
                 CalculatorMode.ENGINEERING -> "Engineering"
+                CalculatorMode.CUSTOM_BUILDER -> "Build a Calc"
+                CalculatorMode.CALCULATION_CHAINS -> "Chains & Flow"
+                CalculatorMode.AI_COPILOT -> "AI Math Copilot"
             }
             AppLanguage.SPANISH -> when (mode) {
                 CalculatorMode.STANDARD -> "Estándar"
@@ -32,6 +35,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "Conversor de Unidades"
                 CalculatorMode.TIP_SPLIT -> "Propina & Cuenta"
                 CalculatorMode.ENGINEERING -> "Ingeniería"
+                CalculatorMode.CUSTOM_BUILDER -> "Creador IA"
+                CalculatorMode.CALCULATION_CHAINS -> "Cadenas de Flujo"
+                CalculatorMode.AI_COPILOT -> "Copiloto IA"
             }
             AppLanguage.HINDI -> when (mode) {
                 CalculatorMode.STANDARD -> "मानक कैलकुलेटर"
@@ -45,6 +51,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "इकाई परिवर्तक"
                 CalculatorMode.TIP_SPLIT -> "टिप एवं विभाजन"
                 CalculatorMode.ENGINEERING -> "इंजीनियरिंग"
+                CalculatorMode.CUSTOM_BUILDER -> "कैलकुलेटर बनाएं"
+                CalculatorMode.CALCULATION_CHAINS -> "गणना श्रृंखला"
+                CalculatorMode.AI_COPILOT -> "एआई मैथ कोपायलट"
             }
             AppLanguage.GUJARATI -> when (mode) {
                 CalculatorMode.STANDARD -> "સ્ટાન્ડર્ડ કેલ્ક્યુલેટર"
@@ -58,6 +67,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "એકમ કન્વર્ટર"
                 CalculatorMode.TIP_SPLIT -> "ટિપ અને ભાગ"
                 CalculatorMode.ENGINEERING -> "એન્જિનિયરિંગ"
+                CalculatorMode.CUSTOM_BUILDER -> "કેલ્ક્યુલેટર બનાવો"
+                CalculatorMode.CALCULATION_CHAINS -> "ચેઈન પ્રવાહ"
+                CalculatorMode.AI_COPILOT -> "એઆઈ ગણિત સહાયક"
             }
             AppLanguage.FRENCH -> when (mode) {
                 CalculatorMode.STANDARD -> "Standard"
@@ -71,6 +83,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "Convertisseur d'Unités"
                 CalculatorMode.TIP_SPLIT -> "Pourboire & Partage"
                 CalculatorMode.ENGINEERING -> "Ingénierie"
+                CalculatorMode.CUSTOM_BUILDER -> "Créer Calculatrice"
+                CalculatorMode.CALCULATION_CHAINS -> "Chaînes de Calcul"
+                CalculatorMode.AI_COPILOT -> "Copilote IA"
             }
             AppLanguage.GERMAN -> when (mode) {
                 CalculatorMode.STANDARD -> "Standard"
@@ -84,6 +99,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "Einheitenumrechner"
                 CalculatorMode.TIP_SPLIT -> "Trinkgeld & Teilen"
                 CalculatorMode.ENGINEERING -> "Ingenieurwesen"
+                CalculatorMode.CUSTOM_BUILDER -> "Rechner Baukasten"
+                CalculatorMode.CALCULATION_CHAINS -> "Kettenrechnung"
+                CalculatorMode.AI_COPILOT -> "KI Mathe-Copilot"
             }
             AppLanguage.JAPANESE -> when (mode) {
                 CalculatorMode.STANDARD -> "標準電卓"
@@ -97,6 +115,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "単位変換"
                 CalculatorMode.TIP_SPLIT -> "割り勘・チップ"
                 CalculatorMode.ENGINEERING -> "工学・定数計算"
+                CalculatorMode.CUSTOM_BUILDER -> "AI電卓作成"
+                CalculatorMode.CALCULATION_CHAINS -> "連動フロー計算"
+                CalculatorMode.AI_COPILOT -> "AI数学コパイロット"
             }
             AppLanguage.CHINESE -> when (mode) {
                 CalculatorMode.STANDARD -> "标准计算"
@@ -110,6 +131,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "单位换算器"
                 CalculatorMode.TIP_SPLIT -> "小费与AA制"
                 CalculatorMode.ENGINEERING -> "工程物理"
+                CalculatorMode.CUSTOM_BUILDER -> "AI定制计算器"
+                CalculatorMode.CALCULATION_CHAINS -> "级联链式计算"
+                CalculatorMode.AI_COPILOT -> "AI数学副驾"
             }
             AppLanguage.ARABIC -> when (mode) {
                 CalculatorMode.STANDARD -> "قياسي"
@@ -123,6 +147,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "محول الوحدات"
                 CalculatorMode.TIP_SPLIT -> "الإكرامية والتقسيم"
                 CalculatorMode.ENGINEERING -> "حاسبة الهندسة"
+                CalculatorMode.CUSTOM_BUILDER -> "صانع الحاسبات الذكي"
+                CalculatorMode.CALCULATION_CHAINS -> "سلاسل الحسابات"
+                CalculatorMode.AI_COPILOT -> "مساعد الذكاء الاصطناعي"
             }
             AppLanguage.PORTUGUESE -> when (mode) {
                 CalculatorMode.STANDARD -> "Padrão"
@@ -136,6 +163,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "Conversor de Unidades"
                 CalculatorMode.TIP_SPLIT -> "Gorjeta & Divisão"
                 CalculatorMode.ENGINEERING -> "Engenharia"
+                CalculatorMode.CUSTOM_BUILDER -> "Criador IA"
+                CalculatorMode.CALCULATION_CHAINS -> "Cadeias de Cálculo"
+                CalculatorMode.AI_COPILOT -> "Copiloto IA"
             }
             AppLanguage.RUSSIAN -> when (mode) {
                 CalculatorMode.STANDARD -> "Стандартный"
@@ -149,6 +179,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "Конвертер величин"
                 CalculatorMode.TIP_SPLIT -> "Чаевые и счёт"
                 CalculatorMode.ENGINEERING -> "Инженерия"
+                CalculatorMode.CUSTOM_BUILDER -> "Конструктор калькуляторов"
+                CalculatorMode.CALCULATION_CHAINS -> "Каскадные вычисления"
+                CalculatorMode.AI_COPILOT -> "ИИ Копилот"
             }
             AppLanguage.ITALIAN -> when (mode) {
                 CalculatorMode.STANDARD -> "Standard"
@@ -162,6 +195,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "Convertitore di Unità"
                 CalculatorMode.TIP_SPLIT -> "Mancia & Divisione"
                 CalculatorMode.ENGINEERING -> "Ingegneria"
+                CalculatorMode.CUSTOM_BUILDER -> "Crea Calcolatrice"
+                CalculatorMode.CALCULATION_CHAINS -> "Catene di Calcolo"
+                CalculatorMode.AI_COPILOT -> "Copilota IA"
             }
             AppLanguage.INDONESIAN -> when (mode) {
                 CalculatorMode.STANDARD -> "Standar"
@@ -175,6 +211,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "Konversi Satuan"
                 CalculatorMode.TIP_SPLIT -> "Tip & Patungan"
                 CalculatorMode.ENGINEERING -> "Teknik"
+                CalculatorMode.CUSTOM_BUILDER -> "Pembuat Kalkulator"
+                CalculatorMode.CALCULATION_CHAINS -> "Rantai Perhitungan"
+                CalculatorMode.AI_COPILOT -> "Kopilot AI"
             }
             AppLanguage.KOREAN -> when (mode) {
                 CalculatorMode.STANDARD -> "표준 계산기"
@@ -188,6 +227,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "단위 변환기"
                 CalculatorMode.TIP_SPLIT -> "더치페이 / 팁"
                 CalculatorMode.ENGINEERING -> "물리 공학 계산"
+                CalculatorMode.CUSTOM_BUILDER -> "AI 맞춤 계산기 생성"
+                CalculatorMode.CALCULATION_CHAINS -> "연쇄 반응 계산 흐름"
+                CalculatorMode.AI_COPILOT -> "AI 수학 코파일럿"
             }
             AppLanguage.TURKISH -> when (mode) {
                 CalculatorMode.STANDARD -> "Standart"
@@ -201,6 +243,9 @@ object LanguageStrings {
                 CalculatorMode.UNIT_CONVERTER -> "Birim Dönüştürücü"
                 CalculatorMode.TIP_SPLIT -> "Bahşiş & Hesap"
                 CalculatorMode.ENGINEERING -> "Mühendislik"
+                CalculatorMode.CUSTOM_BUILDER -> "Hesap Makinesi Oluştur"
+                CalculatorMode.CALCULATION_CHAINS -> "Zincir Hesaplama"
+                CalculatorMode.AI_COPILOT -> "Yapay Zeka Yardımcısı"
             }
         }
     }
