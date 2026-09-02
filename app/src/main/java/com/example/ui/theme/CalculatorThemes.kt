@@ -2216,6 +2216,9 @@ object CalculatorThemes {
     )
 
     val allThemes: List<ThemePalette> = listOf(
+        // Default Premier Theme: The Dark Knight
+        BatmanDarkKnight,
+
         // Featured Exact Matches from User Designs
         NeumorphicIceLight,
         NeumorphicMidnightAzure,
@@ -2232,7 +2235,6 @@ object CalculatorThemes {
         IndustrialCyanBezel,
         
         // Interactive Dark Showcase
-        BatmanDarkKnight,
         NeonVoid,
         QuantumSuperconductor,
         BioluminescentAbyss,
@@ -2273,6 +2275,6 @@ object CalculatorThemes {
     )
 
     fun getThemeById(id: ThemeId): ThemePalette {
-        return allThemes.find { it.id == id } ?: MacClassic1984
+        return allThemes.find { it.id == id } ?: BatmanDarkKnight
     }
 }
