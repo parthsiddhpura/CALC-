@@ -1503,6 +1503,202 @@ object CalculatorThemes {
         statusBarDarkIcons = false
     )
 
+    val IronManMark85 = ThemePalette(
+        id = ThemeId.IRON_MAN_MARK_85,
+        name = "Iron Man (Mark 85)",
+        subtitle = "Pitch black OLED, iconic crimson & gold armor with pulsing cyan Arc Reactor",
+        category = "Interactive Dark",
+        isDark = true,
+        backgroundBrush = Brush.verticalGradient(
+            colors = listOf(Color(0xFF000000), Color(0xFF000000))
+        ),
+        backgroundColor = Color(0xFF000000),
+        surfaceColor = Color(0xFF0A0F1A),
+        cardBackground = Color(0xFF101726),
+        screenBackground = Color(0x66000000),
+        screenBorderColor = Color(0x8800F0FF),
+        screenTextColor = Color(0xFFFFFFFF),
+        screenExpressionColor = Color(0xFF80D8FF),
+        screenPreviewColor = Color(0xFF00F0FF),
+        cursorColor = Color(0xFF00F0FF),
+        displayFont = DisplayFontType.MODERN_SANS,
+        hasScanlines = false,
+        hasBatSignal = false,
+        hasArcReactor = true,
+        ironManSuit = com.example.model.IronManSuitType.MARK_85_CLASSIC,
+        numberButtonBg = Color(0xFF131A26),
+        numberButtonText = Color(0xFFFFFFFF),
+        numberButtonBorder = Color(0x3300F0FF),
+        operatorButtonBg = Color(0xFF8B0E1B),
+        operatorButtonText = Color(0xFFFFD700),
+        operatorButtonBorder = Color(0x66FFD700),
+        functionButtonBg = Color(0xFF1B283A),
+        functionButtonText = Color(0xFF00F0FF),
+        functionButtonBorder = Color(0x4400F0FF),
+        equalsButtonBrush = Brush.radialGradient(
+            colors = listOf(Color(0xFF00F0FF), Color(0xFF0077B6), Color(0xFF05080E))
+        ),
+        equalsButtonText = Color(0xFF00F0FF),
+        equalsButtonBorder = Color(0x8800F0FF),
+        accentColor = Color(0xFF00F0FF),
+        secondaryAccent = Color(0xFFFFD700),
+        glowColor = Color(0x6600F0FF),
+        shapeType = ButtonShapeType.ROUNDED_SQUARE,
+        cornerRadiusDp = 18.dp,
+        borderWidthDp = 1.2.dp,
+        hasShadow = true,
+        shadowElevationDp = 5.dp,
+        pressAnimation = PressAnimationType.BOUNCE,
+        statusBarDarkIcons = false
+    )
+
+    val IronManStealth = ThemePalette(
+        id = ThemeId.IRON_MAN_STEALTH,
+        name = "Iron Man: Stealth Strike",
+        subtitle = "Model 7 matte stealth slate armor with gunmetal faceplate & electric cyan optics",
+        category = "Interactive Dark",
+        isDark = true,
+        backgroundBrush = Brush.verticalGradient(
+            colors = listOf(Color(0xFF000000), Color(0xFF000000))
+        ),
+        backgroundColor = Color(0xFF000000),
+        surfaceColor = Color(0xFF0B101B),
+        cardBackground = Color(0xFF111827),
+        screenBackground = Color(0x66000000),
+        screenBorderColor = Color(0x8800E5FF),
+        screenTextColor = Color(0xFFFFFFFF),
+        screenExpressionColor = Color(0xFF38BDF8),
+        screenPreviewColor = Color(0xFF00E5FF),
+        cursorColor = Color(0xFF00E5FF),
+        displayFont = DisplayFontType.MODERN_SANS,
+        hasScanlines = false,
+        hasBatSignal = false,
+        hasArcReactor = true,
+        ironManSuit = com.example.model.IronManSuitType.STEALTH_STRIKE,
+        numberButtonBg = Color(0xFF0F172A),
+        numberButtonText = Color(0xFFF1F5F9),
+        numberButtonBorder = Color(0x3300E5FF),
+        operatorButtonBg = Color(0xFF1E293B),
+        operatorButtonText = Color(0xFF00E5FF),
+        operatorButtonBorder = Color(0x6600E5FF),
+        functionButtonBg = Color(0xFF334155),
+        functionButtonText = Color(0xFF38BDF8),
+        functionButtonBorder = Color(0x4438BDF8),
+        equalsButtonBrush = Brush.radialGradient(
+            colors = listOf(Color(0xFF00E5FF), Color(0xFF0284C7), Color(0xFF030712))
+        ),
+        equalsButtonText = Color(0xFF00E5FF),
+        equalsButtonBorder = Color(0x8800E5FF),
+        accentColor = Color(0xFF00E5FF),
+        secondaryAccent = Color(0xFF38BDF8),
+        glowColor = Color(0x6600E5FF),
+        shapeType = ButtonShapeType.ROUNDED_SQUARE,
+        cornerRadiusDp = 18.dp,
+        borderWidthDp = 1.2.dp,
+        hasShadow = true,
+        shadowElevationDp = 5.dp,
+        pressAnimation = PressAnimationType.BOUNCE,
+        statusBarDarkIcons = false
+    )
+
+    val IronManSilverCenturion = ThemePalette(
+        id = ThemeId.IRON_MAN_SILVER_CENTURION,
+        name = "Iron Man: Silver Centurion",
+        subtitle = "Mark 33 deep ruby neo-armor with polished chrome silver faceplate & cobalt reactor",
+        category = "Interactive Dark",
+        isDark = true,
+        backgroundBrush = Brush.verticalGradient(
+            colors = listOf(Color(0xFF000000), Color(0xFF000000))
+        ),
+        backgroundColor = Color(0xFF000000),
+        surfaceColor = Color(0xFF130A0E),
+        cardBackground = Color(0xFF1C0E14),
+        screenBackground = Color(0x66000000),
+        screenBorderColor = Color(0x882979FF),
+        screenTextColor = Color(0xFFFFFFFF),
+        screenExpressionColor = Color(0xFF90CAF9),
+        screenPreviewColor = Color(0xFF2979FF),
+        cursorColor = Color(0xFF2979FF),
+        displayFont = DisplayFontType.MODERN_SANS,
+        hasScanlines = false,
+        hasBatSignal = false,
+        hasArcReactor = true,
+        ironManSuit = com.example.model.IronManSuitType.SILVER_CENTURION,
+        numberButtonBg = Color(0xFF15151E),
+        numberButtonText = Color(0xFFECEFF1),
+        numberButtonBorder = Color(0x33B0BEC5),
+        operatorButtonBg = Color(0xFF8E0015),
+        operatorButtonText = Color(0xFFECEFF1),
+        operatorButtonBorder = Color(0x88ECEFF1),
+        functionButtonBg = Color(0xFF263238),
+        functionButtonText = Color(0xFF90CAF9),
+        functionButtonBorder = Color(0x4490CAF9),
+        equalsButtonBrush = Brush.radialGradient(
+            colors = listOf(Color(0xFF2979FF), Color(0xFF1565C0), Color(0xFF050B14))
+        ),
+        equalsButtonText = Color(0xFF2979FF),
+        equalsButtonBorder = Color(0x882979FF),
+        accentColor = Color(0xFF2979FF),
+        secondaryAccent = Color(0xFFECEFF1),
+        glowColor = Color(0x662979FF),
+        shapeType = ButtonShapeType.ROUNDED_SQUARE,
+        cornerRadiusDp = 18.dp,
+        borderWidthDp = 1.2.dp,
+        hasShadow = true,
+        shadowElevationDp = 5.dp,
+        pressAnimation = PressAnimationType.BOUNCE,
+        statusBarDarkIcons = false
+    )
+
+    val IronManHulkbuster = ThemePalette(
+        id = ThemeId.IRON_MAN_HULKBUSTER,
+        name = "Iron Man: Hulkbuster Overdrive",
+        subtitle = "Mark 44 heavy maroon alloy with hazard amber faceplate & sunburst orange unibeam",
+        category = "Interactive Dark",
+        isDark = true,
+        backgroundBrush = Brush.verticalGradient(
+            colors = listOf(Color(0xFF000000), Color(0xFF000000))
+        ),
+        backgroundColor = Color(0xFF000000),
+        surfaceColor = Color(0xFF160A06),
+        cardBackground = Color(0xFF211009),
+        screenBackground = Color(0x66000000),
+        screenBorderColor = Color(0x88FF6D00),
+        screenTextColor = Color(0xFFFFFFFF),
+        screenExpressionColor = Color(0xFFFFB74D),
+        screenPreviewColor = Color(0xFFFF6D00),
+        cursorColor = Color(0xFFFF6D00),
+        displayFont = DisplayFontType.MODERN_SANS,
+        hasScanlines = false,
+        hasBatSignal = false,
+        hasArcReactor = true,
+        ironManSuit = com.example.model.IronManSuitType.HULKBUSTER,
+        numberButtonBg = Color(0xFF1E1410),
+        numberButtonText = Color(0xFFFFE0B2),
+        numberButtonBorder = Color(0x33FF6D00),
+        operatorButtonBg = Color(0xFF7A0C14),
+        operatorButtonText = Color(0xFFFFB300),
+        operatorButtonBorder = Color(0x88FFA000),
+        functionButtonBg = Color(0xFF2D1810),
+        functionButtonText = Color(0xFFFF9800),
+        functionButtonBorder = Color(0x44FF9800),
+        equalsButtonBrush = Brush.radialGradient(
+            colors = listOf(Color(0xFFFF6D00), Color(0xFFE65100), Color(0xFF140600))
+        ),
+        equalsButtonText = Color(0xFFFF6D00),
+        equalsButtonBorder = Color(0x88FF6D00),
+        accentColor = Color(0xFFFF6D00),
+        secondaryAccent = Color(0xFFFFB300),
+        glowColor = Color(0x66FF6D00),
+        shapeType = ButtonShapeType.ROUNDED_SQUARE,
+        cornerRadiusDp = 18.dp,
+        borderWidthDp = 1.2.dp,
+        hasShadow = true,
+        shadowElevationDp = 5.dp,
+        pressAnimation = PressAnimationType.BOUNCE,
+        statusBarDarkIcons = false
+    )
+
     val BioluminescentAbyss = ThemePalette(
         id = ThemeId.BIOLUMINESCENT_ABYSS,
         name = "Bioluminescent Abyss",
@@ -2216,8 +2412,12 @@ object CalculatorThemes {
     )
 
     val allThemes: List<ThemePalette> = listOf(
-        // Default Premier Theme: The Dark Knight
+        // Default Premier Themes
         BatmanDarkKnight,
+        IronManMark85,
+        IronManStealth,
+        IronManSilverCenturion,
+        IronManHulkbuster,
 
         // Featured Exact Matches from User Designs
         NeumorphicIceLight,

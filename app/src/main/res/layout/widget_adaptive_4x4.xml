@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_bg_glass"
+    android:padding="12dp">
+
+    <!-- Header Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="CALC + • Command Center"
+            android:textColor="#00E5FF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btn_theme_cycle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_btn_bg_glass"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="Style 🎨"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp" />
+    </LinearLayout>
+
+    <!-- Top: Mini Calculator Display -->
+    <LinearLayout
+        android:id="@+id/btn_open_calc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/widget_screen_bg_glass"
+        android:padding="8dp"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/widget_expression"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="125 × 18"
+            android:textColor="#94A3B8"
+            android:textSize="12sp"
+            android:gravity="end"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/widget_result"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="2,250"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:gravity="end"
+            android:singleLine="true" />
+    </LinearLayout>
+
+    <!-- Middle: Quick History List -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="RECENT CALCULATIONS"
+        android:textColor="#94A3B8"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_marginBottom="8dp">
+
+        <TextView
+            android:id="@+id/hist_row_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_screen_bg_glass"
+            android:padding="6dp"
+            android:text="• ₹50,000 + 18% = ₹59,000"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:layout_marginBottom="3dp"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/hist_row_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_screen_bg_glass"
+            android:padding="6dp"
+            android:text="• √144 = 12"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:layout_marginBottom="3dp"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/hist_row_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_screen_bg_glass"
+            android:padding="6dp"
+            android:text="• ₹10,00,000 EMI = ₹20,517/mo"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:singleLine="true" />
+    </LinearLayout>
+
+    <!-- Bottom: Shortcuts Grid (CALC, GST, EMI, BMI, AGE, ₹→$) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="QUICK MODES"
+        android:textColor="#94A3B8"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="4dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:orientation="horizontal"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:id="@+id/btn_hub_calc"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/widget_btn_accent_glass"
+            android:gravity="center"
+            android:text="CALC"
+            android:textColor="#00E5FF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="3dp" />
+
+        <TextView
+            android:id="@+id/btn_hub_gst"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/widget_btn_bg_glass"
+            android:gravity="center"
+            android:text="GST"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginHorizontal="2dp" />
+
+        <TextView
+            android:id="@+id/btn_hub_emi"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/widget_btn_bg_glass"
+            android:gravity="center"
+            android:text="EMI"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginStart="3dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btn_hub_bmi"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/widget_btn_bg_glass"
+            android:gravity="center"
+            android:text="BMI"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="3dp" />
+
+        <TextView
+            android:id="@+id/btn_hub_age"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/widget_btn_bg_glass"
+            android:gravity="center"
+            android:text="AGE"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginHorizontal="2dp" />
+
+        <TextView
+            android:id="@+id/btn_hub_forex"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/widget_btn_accent_glass"
+            android:gravity="center"
+            android:text="₹→$"
+            android:textColor="#00E5FF"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:layout_marginStart="3dp" />
+    </LinearLayout>
+</LinearLayout>

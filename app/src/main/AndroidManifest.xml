@@ -38,6 +38,141 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/calculator_widget_info" />
         </receiver>
+
+        <receiver
+            android:name=".widget.QuickCalcWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_quick_calc" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.HistoryWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_history" />
+        </receiver>
+
+        <service
+            android:name=".widget.HistoryWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
+
+        <receiver
+            android:name=".widget.QuickConversionWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_conversion" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.GstWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_gst" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.EmiWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_emi" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.ShortcutGridWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_shortcuts" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.FormulaWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_formula" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.VariableWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_variable" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.PercentageWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_percentage" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.ClipboardWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info_clipboard" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.WidgetActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.widget.ACTION_QUICK_CALC_KEY" />
+                <action android:name="com.example.widget.ACTION_CONVERSION_SWAP" />
+                <action android:name="com.example.widget.ACTION_CONVERSION_TOGGLE_TYPE" />
+                <action android:name="com.example.widget.ACTION_GST_TOGGLE_MODE" />
+                <action android:name="com.example.widget.ACTION_GST_CYCLE_RATE" />
+                <action android:name="com.example.widget.ACTION_GST_ADJUST_AMOUNT" />
+                <action android:name="com.example.widget.ACTION_EMI_ADJUST_TENURE" />
+                <action android:name="com.example.widget.ACTION_EMI_ADJUST_RATE" />
+                <action android:name="com.example.widget.ACTION_PERCENT_ADJUST_RATE" />
+                <action android:name="com.example.widget.ACTION_PERCENT_ADJUST_BASE" />
+                <action android:name="com.example.widget.ACTION_FORMULA_CYCLE" />
+                <action android:name="com.example.widget.ACTION_CYCLE_THEME" />
+                <action android:name="com.example.widget.ACTION_CLIPBOARD_DO" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

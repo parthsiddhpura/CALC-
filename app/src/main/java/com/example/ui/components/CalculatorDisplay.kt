@@ -19,6 +19,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +31,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -57,12 +60,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -94,6 +105,9 @@ fun CalculatorDisplay(
     mode: CalculatorMode,
     displayConfig: DisplayConfig = DisplayConfig(),
     historyCount: Int = 0,
+    cursorPosition: Int = -1,
+    onCursorChange: ((Int) -> Unit)? = null,
+    isEvaluated: Boolean = false,
     onToggleAngleMode: (() -> Unit)? = null,
     onOpenHistory: (() -> Unit)? = null,
     onOpenDecimalConverter: (() -> Unit)? = null,
@@ -104,6 +118,16 @@ fun CalculatorDisplay(
     val coroutineScope = rememberCoroutineScope()
     val exprScrollState = rememberScrollState()
     var justCopied by remember { mutableStateOf(false) }
+
+    // Cursor visibility and blinking state
+    var cursorVisible by remember { mutableStateOf(true) }
+    LaunchedEffect(expression, cursorPosition) {
+        cursorVisible = true
+        while (true) {
+            delay(530)
+            cursorVisible = !cursorVisible
+        }
+    }
 
     LaunchedEffect(expression) {
         if (exprScrollState.maxValue > 0) {
@@ -158,6 +182,9 @@ fun CalculatorDisplay(
         }
     }
 
+    // Only allow copying after '=' button has calculated an amount; before that nothing will copy
+    val canCopy = isEvaluated && formattedResult != "Error" && formattedResult.isNotBlank()
+
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
@@ -168,17 +195,20 @@ fun CalculatorDisplay(
                     Modifier.border(theme.borderWidthDp, theme.screenBorderColor, screenShape)
                 } else Modifier
             )
-            .combinedClickable(
-                onClick = {
-                    if (displayConfig.copyOnTap) {
-                        copyToClipboard(formattedResult, "Result")
-                    }
-                },
-                onLongClick = {
-                    val fullEquation = if (formattedExpr.isNotBlank() && formattedResult != "0") {
-                        "$formattedExpr = $formattedResult"
-                    } else formattedResult
-                    copyToClipboard(fullEquation, "Calculation")
+            .then(
+                if (canCopy) {
+                    Modifier.combinedClickable(
+                        onClick = {
+                            if (displayConfig.copyOnTap) {
+                                copyToClipboard(formattedResult, "Result")
+                            }
+                        },
+                        onLongClick = {
+                            copyToClipboard(formattedResult, "Result")
+                        }
+                    )
+                } else {
+                    Modifier
                 }
             )
             .testTag("calculator_display")
@@ -214,6 +244,21 @@ fun CalculatorDisplay(
         // Batman Display Overlay (Bat-Signal searchlight, insignia, and tactile responses)
         if (theme.hasBatSignal) {
             BatmanDisplayOverlay(modifier = Modifier.matchParentSize())
+        }
+
+        // Iron Man Display Overlay (Unique Stark HUD animation for Mark 85, Stealth, Silver Centurion, Hulkbuster)
+        if (theme.hasArcReactor) {
+            IronManDisplayOverlay(
+                modifier = Modifier.matchParentSize(),
+                suitType = theme.ironManSuit ?: com.example.model.IronManSuitType.MARK_85_CLASSIC,
+                accentColor = theme.accentColor
+            )
+        } else if (!theme.hasBatSignal) {
+            // Unique professional ambient display animation for all other theme categories
+            ThemeAmbientDisplayAnimation(
+                modifier = Modifier.matchParentSize(),
+                theme = theme
+            )
         }
 
         Column(
@@ -269,6 +314,35 @@ fun CalculatorDisplay(
                                     Text(
                                         text = "WAYNE TECH",
                                         color = Color(0xFFFFE500),
+                                        fontSize = if (isCompact) 8.sp else 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = fontFamily,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+
+                        // Stark Tech Arc Reactor HUD Badge for Iron Man Theme
+                        if (theme.hasArcReactor) {
+                            Surface(
+                                color = Color(0x3300F0FF),
+                                shape = RoundedCornerShape(6.dp),
+                                border = androidx.compose.foundation.BorderStroke(0.8.dp, Color(0x6600F0FF))
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                    modifier = Modifier.padding(horizontal = if (isCompact) 4.dp else 6.dp, vertical = 2.dp)
+                                ) {
+                                    ArcReactorIcon(
+                                        modifier = Modifier.size(if (isCompact) 11.dp else 13.dp),
+                                        glowColor = Color(0xFF00F0FF),
+                                        showOuterTabs = false
+                                    )
+                                    Text(
+                                        text = "STARK TECH",
+                                        color = Color(0xFF00F0FF),
                                         fontSize = if (isCompact) 8.sp else 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = fontFamily,
@@ -344,15 +418,21 @@ fun CalculatorDisplay(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(if (isCompact) 3.dp else 6.dp)
                 ) {
-                    // Quick Copy Action Button
+                    // Quick Copy Action Button (only active after calculation equals is pressed)
                     Surface(
                         shape = CircleShape,
                         color = if (justCopied) theme.accentColor.copy(alpha = 0.25f) else theme.surfaceColor,
                         modifier = Modifier
                             .clip(CircleShape)
-                            .clickable {
-                                copyToClipboard(formattedResult, "Result")
-                            }
+                            .then(
+                                if (canCopy) {
+                                    Modifier.clickable {
+                                        copyToClipboard(formattedResult, "Result")
+                                    }
+                                } else {
+                                    Modifier
+                                }
+                            )
                             .testTag("btn_display_copy")
                     ) {
                         Box(
@@ -361,8 +441,14 @@ fun CalculatorDisplay(
                         ) {
                             Icon(
                                 imageVector = if (justCopied) Icons.Default.Done else Icons.Default.ContentCopy,
-                                contentDescription = "Copy Result",
-                                tint = if (justCopied) theme.accentColor else theme.screenExpressionColor,
+                                contentDescription = if (canCopy) "Copy Result" else "Calculate first to copy",
+                                tint = if (justCopied) {
+                                    theme.accentColor
+                                } else if (canCopy) {
+                                    theme.screenExpressionColor
+                                } else {
+                                    theme.screenExpressionColor.copy(alpha = 0.3f)
+                                },
                                 modifier = Modifier.size(if (isCompact) 12.dp else 14.dp)
                             )
                         }
@@ -440,17 +526,121 @@ fun CalculatorDisplay(
 
             Spacer(modifier = Modifier.height(if (isCompact) 2.dp else 4.dp))
 
-            // Expression Row (with horizontal scroll)
+            // Expression Row (with horizontal scroll and interactive touch & drag cursor)
             if (formattedExpr.isNotEmpty() || !isVeryCompact) {
+                var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+                var textCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+                var rowCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+
+                val effectiveCursorPos = if (cursorPosition >= 0) {
+                    cursorPosition.coerceIn(0, expression.length)
+                } else {
+                    expression.length
+                }
+                val formattedCursorPos = remember(expression, effectiveCursorPos, formattedExpr) {
+                    mapRawOffsetToFormatted(expression, effectiveCursorPos, formattedExpr)
+                }
+
+                // Scroll expression horizontally to keep cursor visible
+                LaunchedEffect(expression, effectiveCursorPos, formattedCursorPos) {
+                    val layout = textLayoutResult
+                    if (layout != null && formattedExpr.isNotEmpty()) {
+                        val safeOffset = formattedCursorPos.coerceIn(0, formattedExpr.length)
+                        val cursorRect = layout.getCursorRect(safeOffset)
+                        val cursorX = cursorRect.left.toInt()
+                        val viewportWidth = exprScrollState.viewportSize
+                        if (viewportWidth > 0) {
+                            if (cursorX < exprScrollState.value) {
+                                exprScrollState.animateScrollTo((cursorX - 40).coerceAtLeast(0))
+                            } else if (cursorX > exprScrollState.value + viewportWidth) {
+                                exprScrollState.animateScrollTo(cursorX - viewportWidth + 40)
+                            }
+                        }
+                    } else if (exprScrollState.maxValue > 0) {
+                        exprScrollState.scrollTo(exprScrollState.maxValue)
+                    }
+                }
+
+                // Precision Touch & Drag cursor positioning function
+                fun updateCursorFromTouchOffset(touchOffsetInRow: Offset) {
+                    val layout = textLayoutResult ?: return
+                    val textCoords = textCoordinates ?: return
+                    val rowCoords = rowCoordinates ?: return
+
+                    if (formattedExpr.isEmpty()) {
+                        onCursorChange?.invoke(0)
+                        return
+                    }
+
+                    // Convert touch position from the Row coordinate space to Text local coordinate space
+                    val localInText = textCoords.localPositionOf(rowCoords, touchOffsetInRow)
+                    val touchX = localInText.x
+
+                    val lineLeft = layout.getLineLeft(0)
+                    val lineRight = layout.getLineRight(0)
+
+                    val targetFormattedOffset = when {
+                        touchX <= lineLeft -> 0
+                        touchX >= lineRight -> formattedExpr.length
+                        else -> {
+                            var foundOffset: Int? = null
+                            for (i in 0 until formattedExpr.length) {
+                                val box = layout.getBoundingBox(i)
+                                if (touchX >= box.left && touchX <= box.right) {
+                                    val mid = (box.left + box.right) / 2f
+                                    foundOffset = if (touchX < mid) i else i + 1
+                                    break
+                                }
+                            }
+                            foundOffset ?: layout.getOffsetForPosition(Offset(touchX, layout.size.height / 2f))
+                                .coerceIn(0, formattedExpr.length)
+                        }
+                    }
+
+                    val targetRawOffset = mapFormattedOffsetToRaw(
+                        formattedExpr = formattedExpr,
+                        formattedOffset = targetFormattedOffset,
+                        rawExpr = expression
+                    )
+
+                    if (targetRawOffset != effectiveCursorPos) {
+                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    }
+                    onCursorChange?.invoke(targetRawOffset)
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .heightIn(min = 38.dp)
+                        .onGloballyPositioned { rowCoordinates = it }
+                        .pointerInput(formattedExpr, expression) {
+                            awaitEachGesture {
+                                val down = awaitFirstDown(requireUnconsumed = false)
+                                updateCursorFromTouchOffset(down.position)
+
+                                val pointerId = down.id
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val drag = event.changes.firstOrNull { it.id == pointerId } ?: break
+                                    if (!drag.pressed) break
+
+                                    if (drag.positionChange().getDistance() > 1f) {
+                                        drag.consume()
+                                        updateCursorFromTouchOffset(drag.position)
+                                    }
+                                }
+                            }
+                        }
                         .horizontalScroll(exprScrollState),
                     contentAlignment = Alignment.CenterEnd
                 ) {
+                    val displayText = if (formattedExpr.isEmpty()) "0" else formattedExpr
+                    val isPlaceholder = formattedExpr.isEmpty()
+
                     Text(
-                        text = if (formattedExpr.isEmpty()) "0" else formattedExpr,
-                        color = if (formattedExpr.isEmpty()) theme.screenExpressionColor.copy(alpha = 0.4f) else theme.screenExpressionColor,
+                        text = displayText,
+                        color = if (isPlaceholder) theme.screenExpressionColor.copy(alpha = 0.4f) else theme.screenExpressionColor,
                         fontSize = exprBaseSize.sp,
                         lineHeight = exprBaseSize.sp,
                         fontFamily = fontFamily,
@@ -458,7 +648,56 @@ fun CalculatorDisplay(
                         textAlign = TextAlign.End,
                         maxLines = 1,
                         softWrap = false,
-                        modifier = Modifier.testTag("expression_text")
+                        onTextLayout = { layoutResult ->
+                            textLayoutResult = layoutResult
+                        },
+                        modifier = Modifier
+                            .onGloballyPositioned { textCoordinates = it }
+                            .testTag("expression_text")
+                            .drawWithContent {
+                                drawContent()
+                                // Interactive cursor line
+                                if (onCursorChange != null && cursorVisible && !isPlaceholder) {
+                                    val layout = textLayoutResult
+                                    if (layout != null && formattedExpr.isNotEmpty()) {
+                                        val safeOffset = formattedCursorPos.coerceIn(0, formattedExpr.length)
+                                        val cursorRect = layout.getCursorRect(safeOffset)
+                                        val cursorWidth = 2.5.dp.toPx()
+                                        val cursorTop = cursorRect.top + 1.dp.toPx()
+                                        val cursorHeight = (cursorRect.bottom - cursorRect.top - 2.dp.toPx()).coerceAtLeast(18.dp.toPx())
+
+                                        // Subtle glowing halo
+                                        drawRoundRect(
+                                            color = theme.accentColor.copy(alpha = 0.35f),
+                                            topLeft = Offset(cursorRect.left - (cursorWidth / 2) - 2.dp.toPx(), cursorTop - 1.dp.toPx()),
+                                            size = Size(cursorWidth + 4.dp.toPx(), cursorHeight + 2.dp.toPx()),
+                                            cornerRadius = CornerRadius(2.dp.toPx())
+                                        )
+                                        // Solid crisp cursor line
+                                        drawRoundRect(
+                                            color = theme.accentColor,
+                                            topLeft = Offset(cursorRect.left - (cursorWidth / 2), cursorTop),
+                                            size = Size(cursorWidth, cursorHeight),
+                                            cornerRadius = CornerRadius(1.2.dp.toPx())
+                                        )
+                                        // Bottom teardrop / handle accent
+                                        drawCircle(
+                                            color = theme.accentColor,
+                                            radius = 3.dp.toPx(),
+                                            center = Offset(cursorRect.left, cursorTop + cursorHeight + 2.dp.toPx())
+                                        )
+                                    }
+                                } else if (onCursorChange != null && cursorVisible && isPlaceholder) {
+                                    val cursorWidth = 2.5.dp.toPx()
+                                    val cursorHeight = (exprBaseSize * 0.9f).dp.toPx()
+                                    drawRoundRect(
+                                        color = theme.accentColor,
+                                        topLeft = Offset(size.width - 2.dp.toPx(), (size.height - cursorHeight) / 2f),
+                                        size = Size(cursorWidth, cursorHeight),
+                                        cornerRadius = CornerRadius(1.2.dp.toPx())
+                                    )
+                                }
+                            }
                     )
                 }
             }
@@ -479,17 +718,27 @@ fun CalculatorDisplay(
                         exit = fadeOut()
                     ) {
                         if (formattedPreview != null) {
+                            val previewCharCount = formattedPreview.length + 2
+                            val previewScale = when {
+                                previewCharCount <= 10 -> 1.0f
+                                previewCharCount <= 14 -> 0.82f
+                                previewCharCount <= 18 -> 0.68f
+                                previewCharCount <= 22 -> 0.54f
+                                previewCharCount <= 28 -> 0.44f
+                                else -> 0.35f
+                            }
+                            val previewSp = ((exprBaseSize - 2) * previewScale).coerceIn(12f, 24f)
                             Text(
                                 text = "= $formattedPreview",
                                 color = theme.screenPreviewColor,
-                                fontSize = (exprBaseSize - 2).coerceAtLeast(16).sp,
-                                lineHeight = (exprBaseSize - 2).coerceAtLeast(16).sp,
+                                fontSize = previewSp.sp,
+                                lineHeight = previewSp.sp,
                                 fontFamily = fontFamily,
                                 fontWeight = FontWeight.SemiBold,
                                 textAlign = TextAlign.End,
                                 maxLines = 1,
                                 softWrap = false,
-                                overflow = TextOverflow.Ellipsis,
+                                overflow = TextOverflow.Clip, // Never truncate preview with "..."
                                 modifier = Modifier
                                     .padding(bottom = 1.dp)
                                     .testTag("preview_result_text")
@@ -498,34 +747,109 @@ fun CalculatorDisplay(
                     }
                 }
 
-                // Main Result with smooth responsive scale proportional to actual container height and digit count
-                val targetSp = when {
-                    formattedResult.length > 20 -> (baseSp * 0.42f).coerceAtLeast(24f)
-                    formattedResult.length > 15 -> (baseSp * 0.55f).coerceAtLeast(28f)
-                    formattedResult.length > 11 -> (baseSp * 0.70f).coerceAtLeast(34f)
-                    formattedResult.length > 8  -> (baseSp * 0.85f).coerceAtLeast(42f)
-                    else -> baseSp
+                // Main Result dynamic auto-scaling: dynamically reduces font size so big amounts fit without truncation
+                val charCount = formattedResult.length
+                val dynamicScale = when {
+                    charCount <= 7 -> 1.0f
+                    charCount <= 9 -> 0.82f
+                    charCount <= 11 -> 0.68f
+                    charCount <= 13 -> 0.54f // For 4,770,644,268 (13 chars) - fits comfortably on screen!
+                    charCount <= 15 -> 0.44f
+                    charCount <= 18 -> 0.36f
+                    charCount <= 22 -> 0.30f
+                    charCount <= 26 -> 0.25f
+                    charCount <= 32 -> 0.21f
+                    else -> 0.18f
                 }
+                val targetSp = (baseSp * dynamicScale).coerceIn(12f, baseSp)
                 val animatedSp by animateFloatAsState(
                     targetValue = targetSp,
-                    animationSpec = spring(dampingRatio = 0.8f, stiffness = 600f),
+                    animationSpec = spring(dampingRatio = 0.85f, stiffness = 800f),
                     label = "result_font_scale"
                 )
 
-                Text(
-                    text = formattedResult,
-                    color = theme.screenTextColor,
-                    fontSize = animatedSp.sp,
-                    lineHeight = animatedSp.sp,
-                    fontFamily = fontFamily,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.End,
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.testTag("main_result_text")
-                )
+                val resultScrollState = rememberScrollState()
+                LaunchedEffect(formattedResult) {
+                    if (resultScrollState.maxValue > 0) {
+                        resultScrollState.scrollTo(resultScrollState.maxValue)
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(resultScrollState),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    Text(
+                        text = formattedResult,
+                        color = theme.screenTextColor,
+                        fontSize = animatedSp.sp,
+                        lineHeight = animatedSp.sp,
+                        fontFamily = fontFamily,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.End,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Clip, // Never truncate with "..."!
+                        modifier = Modifier.testTag("main_result_text")
+                    )
+                }
             }
         }
     }
+}
+
+/**
+ * Maps a character index in formatted expression (which may contain grouping commas/spaces)
+ * back to the underlying raw mathematical expression index.
+ */
+fun mapFormattedOffsetToRaw(
+    formattedExpr: String,
+    formattedOffset: Int,
+    rawExpr: String
+): Int {
+    if (rawExpr.isEmpty() || formattedOffset <= 0) return 0
+    if (formattedOffset >= formattedExpr.length) return rawExpr.length
+
+    var rawIdx = 0
+    var fmtIdx = 0
+    while (fmtIdx < formattedOffset && rawIdx < rawExpr.length && fmtIdx < formattedExpr.length) {
+        val fmtChar = formattedExpr[fmtIdx]
+        val rawChar = rawExpr[rawIdx]
+        if (fmtChar == rawChar) {
+            rawIdx++
+            fmtIdx++
+        } else {
+            // Skips inserted formatting characters like ',' or ' '
+            fmtIdx++
+        }
+    }
+    return rawIdx.coerceIn(0, rawExpr.length)
+}
+
+/**
+ * Maps a raw mathematical expression cursor offset to the visual position in formattedExpr.
+ */
+fun mapRawOffsetToFormatted(
+    rawExpr: String,
+    rawOffset: Int,
+    formattedExpr: String
+): Int {
+    if (rawExpr.isEmpty() || rawOffset <= 0) return 0
+    if (rawOffset >= rawExpr.length) return formattedExpr.length
+
+    var rawIdx = 0
+    var fmtIdx = 0
+    while (rawIdx < rawOffset && rawIdx < rawExpr.length && fmtIdx < formattedExpr.length) {
+        val fmtChar = formattedExpr[fmtIdx]
+        val rawChar = rawExpr[rawIdx]
+        if (fmtChar == rawChar) {
+            rawIdx++
+            fmtIdx++
+        } else {
+            fmtIdx++
+        }
+    }
+    return fmtIdx.coerceIn(0, formattedExpr.length)
 }

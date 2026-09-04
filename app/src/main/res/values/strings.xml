@@ -1,4 +1,14 @@
 <resources>
     <string name="app_name">CALC +</string>
-    <string name="widget_description">CALC + quick launch and calculation widget</string>
+    <string name="widget_description">CALC + adaptive multi-size calculator hub</string>
+    <string name="widget_quick_calc_desc">Minimal display, number pad shortcuts and last result</string>
+    <string name="widget_history_desc">Scrollable calculation history directly on home screen</string>
+    <string name="widget_conversion_desc">Instant currency and unit conversion with swap</string>
+    <string name="widget_gst_desc">GST tax calculation with direct + / - buttons</string>
+    <string name="widget_emi_desc">Loan EMI monthly installment calculator</string>
+    <string name="widget_shortcuts_desc">Customizable grid of calculator shortcuts</string>
+    <string name="widget_formula_desc">Pin frequently used formulas like Circle Area and Ohm\'s Law</string>
+    <string name="widget_variable_desc">My Values quick access for Salary, Rent, Tax, and Fuel</string>
+    <string name="widget_percentage_desc">Instant percentage calculation with +/- adjustment</string>
+    <string name="widget_clipboard_desc">Smart actions for copied numbers: Calc, Convert, GST, Share</string>
 </resources>

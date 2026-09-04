@@ -55,6 +55,8 @@ import com.example.ui.components.AgeCalculatorView
 import com.example.ui.components.AiMathCopilotView
 import com.example.ui.components.BatmanLogoIcon
 import com.example.ui.components.BatmanScreenBackground
+import com.example.ui.components.ArcReactorIcon
+import com.example.ui.components.IronManScreenBackground
 import com.example.ui.components.BmiCalculatorView
 import com.example.ui.components.CalculationChainsView
 import com.example.ui.components.CalculatorDisplay
@@ -84,7 +86,13 @@ fun CalculatorScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val historyList by viewModel.historyList.collectAsStateWithLifecycle()
     val ageProfiles by viewModel.ageProfilesList.collectAsStateWithLifecycle()
-    val theme = remember(uiState) {
+    val theme = remember(
+        uiState.currentThemeId,
+        uiState.customAccentColor,
+        uiState.customShapeType,
+        uiState.customDisplayFont,
+        uiState.displayConfig.showScanlinesOverride
+    ) {
         viewModel.getEffectiveTheme(uiState)
     }
     val haptics = LocalHapticFeedback.current
@@ -107,6 +115,12 @@ fun CalculatorScreen(
         ) {
             if (theme.hasBatSignal) {
                 BatmanScreenBackground(modifier = Modifier.fillMaxSize())
+            }
+            if (theme.hasArcReactor) {
+                IronManScreenBackground(
+                    modifier = Modifier.fillMaxSize(),
+                    suitType = theme.ironManSuit ?: com.example.model.IronManSuitType.MARK_85_CLASSIC
+                )
             }
 
             Column(
@@ -134,6 +148,12 @@ fun CalculatorScreen(
                                 BatmanLogoIcon(
                                     modifier = Modifier.size(16.dp),
                                     tint = theme.accentColor
+                                )
+                            } else if (theme.hasArcReactor) {
+                                ArcReactorIcon(
+                                    modifier = Modifier.size(18.dp),
+                                    glowColor = theme.accentColor,
+                                    showOuterTabs = false
                                 )
                             } else {
                                 Surface(
@@ -290,6 +310,9 @@ fun CalculatorScreen(
                                         mode = uiState.mode,
                                         displayConfig = uiState.displayConfig,
                                         historyCount = historyList.size,
+                                        cursorPosition = uiState.cursorPosition,
+                                        onCursorChange = { viewModel.setCursorPosition(it) },
+                                        isEvaluated = uiState.lastEvaluated,
                                         onToggleAngleMode = { viewModel.toggleAngleMode() },
                                         onOpenHistory = { viewModel.setShowHistorySheet(true) },
                                         onOpenDecimalConverter = { viewModel.setShowDecimalConverterSheet(true) },
@@ -350,6 +373,9 @@ fun CalculatorScreen(
                                         mode = uiState.mode,
                                         displayConfig = uiState.displayConfig,
                                         historyCount = historyList.size,
+                                        cursorPosition = uiState.cursorPosition,
+                                        onCursorChange = { viewModel.setCursorPosition(it) },
+                                        isEvaluated = uiState.lastEvaluated,
                                         onToggleAngleMode = { viewModel.toggleAngleMode() },
                                         onOpenHistory = { viewModel.setShowHistorySheet(true) },
                                         onOpenDecimalConverter = { viewModel.setShowDecimalConverterSheet(true) },

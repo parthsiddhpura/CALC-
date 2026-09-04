@@ -343,7 +343,7 @@ fun BatmanDisplayOverlay(
     val infiniteTransition = rememberInfiniteTransition(label = "batman_master_anim")
 
     // 1. Sweeping Bat-Signal Searchlight Beam (Harmonic pendulum sweep)
-    val searchlightAngle by infiniteTransition.animateFloat(
+    val searchlightAngle = infiniteTransition.animateFloat(
         initialValue = -16f,
         targetValue = 16f,
         animationSpec = infiniteRepeatable(
@@ -353,7 +353,7 @@ fun BatmanDisplayOverlay(
         label = "searchlight_sweep_angle"
     )
 
-    val signalPulseAlpha by infiniteTransition.animateFloat(
+    val signalPulseAlpha = infiniteTransition.animateFloat(
         initialValue = 0.16f,
         targetValue = 0.36f,
         animationSpec = infiniteRepeatable(
@@ -364,7 +364,7 @@ fun BatmanDisplayOverlay(
     )
 
     // 2. Animated Flying Bats Flight Traversal & Wing Flap Physics
-    val leadBatXProgress by infiniteTransition.animateFloat(
+    val leadBatXProgress = infiniteTransition.animateFloat(
         initialValue = -0.15f,
         targetValue = 1.18f,
         animationSpec = infiniteRepeatable(
@@ -374,7 +374,7 @@ fun BatmanDisplayOverlay(
         label = "lead_bat_x"
     )
 
-    val wingFlapCycle by infiniteTransition.animateFloat(
+    val wingFlapCycle = infiniteTransition.animateFloat(
         initialValue = -1f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -385,7 +385,7 @@ fun BatmanDisplayOverlay(
     )
 
     // 3. Batman Rooftop Stance & Multi-frequency Cape Dynamics
-    val breathingRise by infiniteTransition.animateFloat(
+    val breathingRise = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 2.5f,
         animationSpec = infiniteRepeatable(
@@ -395,7 +395,7 @@ fun BatmanDisplayOverlay(
         label = "batman_breathing"
     )
 
-    val capePrimaryFlutter by infiniteTransition.animateFloat(
+    val capePrimaryFlutter = infiniteTransition.animateFloat(
         initialValue = -1f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -405,7 +405,7 @@ fun BatmanDisplayOverlay(
         label = "cape_primary_flutter"
     )
 
-    val capeSecondaryRipple by infiniteTransition.animateFloat(
+    val capeSecondaryRipple = infiniteTransition.animateFloat(
         initialValue = -1f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -416,7 +416,7 @@ fun BatmanDisplayOverlay(
     )
 
     // 4. Cowl Eye Luminescence & Skyline Beacon
-    val eyeGlowPulse by infiniteTransition.animateFloat(
+    val eyeGlowPulse = infiniteTransition.animateFloat(
         initialValue = 0.70f,
         targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
@@ -426,7 +426,7 @@ fun BatmanDisplayOverlay(
         label = "eye_glow_pulse"
     )
 
-    val beaconBlink by infiniteTransition.animateFloat(
+    val beaconBlink = infiniteTransition.animateFloat(
         initialValue = 0.15f,
         targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
@@ -437,7 +437,7 @@ fun BatmanDisplayOverlay(
     )
 
     // 5. Wayne Tech Tactical Sonar Wave & Radar Reticle Rotation
-    val sonarPulseProgress by infiniteTransition.animateFloat(
+    val sonarPulseProgress = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -447,7 +447,7 @@ fun BatmanDisplayOverlay(
         label = "sonar_pulse"
     )
 
-    val radarRotationAngle by infiniteTransition.animateFloat(
+    val radarRotationAngle = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
@@ -458,7 +458,7 @@ fun BatmanDisplayOverlay(
     )
 
     // 6. Smooth Rain Fall Cycle (0f to 1f continuous seamless fall)
-    val rainTime by infiniteTransition.animateFloat(
+    val rainTime = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -545,6 +545,19 @@ fun BatmanDisplayOverlay(
         ) {
             val width = size.width
             val height = size.height
+
+            val searchlightAngle = searchlightAngle.value
+            val signalPulseAlpha = signalPulseAlpha.value
+            val leadBatXProgress = leadBatXProgress.value
+            val wingFlapCycle = wingFlapCycle.value
+            val breathingRise = breathingRise.value
+            val capePrimaryFlutter = capePrimaryFlutter.value
+            val capeSecondaryRipple = capeSecondaryRipple.value
+            val eyeGlowPulse = eyeGlowPulse.value
+            val beaconBlink = beaconBlink.value
+            val sonarPulseProgress = sonarPulseProgress.value
+            val radarRotationAngle = radarRotationAngle.value
+            val rainTime = rainTime.value
 
             // 1. GOTHAM MIDNIGHT CANVAS WITH DYNAMIC LIGHTNING ILLUMINATION
             val skyGradient = Brush.verticalGradient(
@@ -1069,34 +1082,28 @@ fun BatmanDisplayOverlay(
             }
         }
 
-        // 12. WAYNE TECH HUD TELEMETRY ALERT (Reveals on tap / Easter egg)
+        // 12. WAYNE TECH HUD TELEMETRY ALERT (Reveals on tap / Easter egg at bottom of display)
         AnimatedVisibility(
             visible = activeEasterEgg,
-            enter = fadeIn(tween(140)) + slideInVertically(
-                animationSpec = spring(dampingRatio = 0.7f, stiffness = 600f),
-                initialOffsetY = { -it / 2 }
-            ),
-            exit = fadeOut(tween(260)) + slideOutVertically(
-                animationSpec = tween(220),
-                targetOffsetY = { -it / 2 }
-            ),
+            enter = fadeIn(tween(180)) + slideInVertically(tween(250)) { -it / 2 },
+            exit = fadeOut(tween(250)) + slideOutVertically(tween(250)) { -it / 2 },
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 22.dp)
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 10.dp)
         ) {
             Surface(
                 color = Color(0xF00A0D14),
-                shape = RoundedCornerShape(14.dp),
-                border = androidx.compose.foundation.BorderStroke(1.2.dp, Color(0xFFFFE500)),
+                shape = RoundedCornerShape(18.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFE500)),
                 shadowElevation = 8.dp
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     BatmanLogoIcon(
-                        modifier = Modifier.size(14.dp),
+                        modifier = Modifier.size(16.dp),
                         tint = Color(0xFFFFE500)
                     )
                     Text(
@@ -1122,7 +1129,7 @@ fun BatmanScreenBackground(
     modifier: Modifier = Modifier
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "batman_screen_bg_anim")
-    val ambientPulse by infiniteTransition.animateFloat(
+    val ambientPulse = infiniteTransition.animateFloat(
         initialValue = 0.03f,
         targetValue = 0.09f,
         animationSpec = infiniteRepeatable(
@@ -1131,7 +1138,7 @@ fun BatmanScreenBackground(
         ),
         label = "ambient_bg_pulse"
     )
-    val gridSweep by infiniteTransition.animateFloat(
+    val gridSweep = infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -1144,9 +1151,11 @@ fun BatmanScreenBackground(
     Canvas(modifier = modifier) {
         val width = size.width
         val height = size.height
+        val pulse = ambientPulse.value
+        val sweep = gridSweep.value
 
         // Subtle Wayne Tech tactical grid lines (ultra faint stealth aesthetic)
-        val gridStep = 32.dp.toPx()
+        val gridStep = 48.dp.toPx()
         var gx = 0f
         while (gx < width) {
             drawLine(
@@ -1169,7 +1178,7 @@ fun BatmanScreenBackground(
         }
 
         // Horizontal tactical scan line moving smoothly down the screen
-        val scanY = gridSweep * height
+        val scanY = sweep * height
         drawLine(
             brush = Brush.horizontalGradient(
                 colors = listOf(
@@ -1189,7 +1198,7 @@ fun BatmanScreenBackground(
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    Color(0xFFFFE500).copy(alpha = ambientPulse),
+                    Color(0xFFFFE500).copy(alpha = pulse),
                     Color.Transparent
                 ),
                 center = Offset(width * 0.15f, height * 0.88f),

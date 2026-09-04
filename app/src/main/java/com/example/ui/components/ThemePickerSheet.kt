@@ -483,6 +483,31 @@ fun ThemeCard(
                             }
                         }
                     }
+                    if (theme.hasArcReactor) {
+                        Surface(
+                            color = Color(0x3300F0FF),
+                            shape = RoundedCornerShape(6.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, Color(0x8800F0FF))
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            ) {
+                                ArcReactorIcon(
+                                    modifier = Modifier.size(10.dp),
+                                    glowColor = Color(0xFF00F0FF),
+                                    showOuterTabs = false
+                                )
+                                Text(
+                                    text = "ARC REACTOR",
+                                    color = Color(0xFF00F0FF),
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
                     Surface(
                         color = theme.accentColor.copy(alpha = 0.2f),
                         shape = RoundedCornerShape(6.dp)
@@ -554,6 +579,12 @@ fun ThemeCard(
                                 modifier = Modifier.size(16.dp),
                                 tint = Color(0xFFFFE500)
                             )
+                        } else if (theme.hasArcReactor) {
+                            ArcReactorIcon(
+                                modifier = Modifier.size(16.dp),
+                                glowColor = Color(0xFF00F0FF),
+                                showOuterTabs = false
+                            )
                         } else {
                             Text(
                                 text = "${42 + testTapCounter}",
@@ -614,7 +645,15 @@ fun ThemeCard(
                             .clickable { testTapCounter += 10 },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "=", color = theme.equalsButtonText, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                        if (theme.hasArcReactor) {
+                            ArcReactorIcon(
+                                modifier = Modifier.size(20.dp),
+                                glowColor = Color(0xFF00F0FF),
+                                showOuterTabs = false
+                            )
+                        } else {
+                            Text(text = "=", color = theme.equalsButtonText, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold)
+                        }
                     }
                 }
             }

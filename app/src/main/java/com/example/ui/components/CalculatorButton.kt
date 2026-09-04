@@ -64,7 +64,7 @@ fun CalculatorButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
-    // Smooth snappy tactile spring animation
+    // Ultra-crisp, zero-latency physical tactile spring
     val scale by animateFloatAsState(
         targetValue = when {
             isPressed && theme.pressAnimation == PressAnimationType.BOUNCE -> 0.88f
@@ -72,48 +72,24 @@ fun CalculatorButton(
             else -> 1.0f
         },
         animationSpec = spring(
-            dampingRatio = 0.68f,
-            stiffness = 1100f
+            dampingRatio = 0.72f,
+            stiffness = 1600f
         ),
-        label = "btn_smooth_scale"
+        label = "btn_scale"
     )
 
-    val sinkOffsetY by animateFloatAsState(
-        targetValue = when {
-            isPressed && theme.pressAnimation == PressAnimationType.DEEP_SINK -> 4f
-            isPressed -> 1.5f
-            else -> 0f
-        },
-        animationSpec = spring(
-            dampingRatio = 0.75f,
-            stiffness = 1200f
-        ),
-        label = "btn_sink"
-    )
+    // Only compute specialized offsets if theme explicitly requires them
+    val sinkOffsetY = if (isPressed && theme.pressAnimation == PressAnimationType.DEEP_SINK) 3.5f else 0f
+    val brutalDiff = if (theme.isBrutalistShadow && isPressed) 3.5f else 0f
 
-    val brutalOffset by animateFloatAsState(
-        targetValue = if (isPressed) 0f else 3.5f,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 1000f),
-        label = "btn_brutal"
-    )
-
-    val animatedBgColor by animateColorAsState(
-        targetValue = if (isPressed) {
-            when {
-                theme.hasBatSignal -> Color(0xFF283344)
-                theme.pressAnimation == PressAnimationType.NEON_GLOW -> theme.accentColor.copy(alpha = 0.35f)
-                else -> backgroundColor.copy(alpha = 0.82f)
-            }
-        } else backgroundColor,
-        animationSpec = tween(durationMillis = 90),
-        label = "btn_bg_anim"
-    )
-
-    val animatedElevation by animateDpAsState(
-        targetValue = if (isPressed) (theme.shadowElevationDp / 3) else theme.shadowElevationDp,
-        animationSpec = tween(durationMillis = 80),
-        label = "btn_elev_anim"
-    )
+    val currentBgColor = if (isPressed) {
+        when {
+            theme.hasBatSignal -> Color(0xFF283344)
+            theme.hasArcReactor -> Color(0xFF1F2D42)
+            theme.pressAnimation == PressAnimationType.NEON_GLOW -> theme.accentColor.copy(alpha = 0.35f)
+            else -> backgroundColor.copy(alpha = 0.84f)
+        }
+    } else backgroundColor
 
     val shape: Shape = remember(theme.shapeType, theme.cornerRadiusDp) {
         when (theme.shapeType) {
@@ -140,7 +116,9 @@ fun CalculatorButton(
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-                translationY = sinkOffsetY.dp.toPx()
+                if (sinkOffsetY != 0f) {
+                    translationY = sinkOffsetY.dp.toPx()
+                }
             }
             .testTag(testTag)
     ) {
@@ -160,18 +138,18 @@ fun CalculatorButton(
             modifier = Modifier
                 .fillMaxSize()
                 .then(
-                    if (theme.isBrutalistShadow) {
+                    if (theme.isBrutalistShadow && brutalDiff > 0f) {
                         Modifier.graphicsLayer {
-                            val diff = (3.5f - brutalOffset).dp.toPx()
-                            translationX = diff
-                            translationY = diff
+                            val px = brutalDiff.dp.toPx()
+                            translationX = px
+                            translationY = px
                         }
                     } else Modifier
                 )
                 .then(
-                    if (theme.hasShadow && !theme.isBrutalistShadow) {
+                    if (theme.hasShadow && !theme.isBrutalistShadow && theme.shadowElevationDp > 0.dp) {
                         Modifier.shadow(
-                            elevation = animatedElevation,
+                            elevation = if (isPressed) theme.shadowElevationDp / 2 else theme.shadowElevationDp,
                             shape = shape
                         )
                     } else Modifier
@@ -181,15 +159,15 @@ fun CalculatorButton(
                     if (backgroundBrush != null) {
                         Modifier.background(backgroundBrush)
                     } else {
-                        Modifier.background(animatedBgColor)
+                        Modifier.background(currentBgColor)
                     }
                 )
                 .then(
-                    if (borderWidth > 0.dp || (isPressed && (theme.pressAnimation == PressAnimationType.NEON_GLOW || theme.hasBatSignal))) {
-                        val activeBorderColor = if (isPressed && (theme.pressAnimation == PressAnimationType.NEON_GLOW || theme.hasBatSignal)) {
+                    if (borderWidth > 0.dp || (isPressed && (theme.pressAnimation == PressAnimationType.NEON_GLOW || theme.hasBatSignal || theme.hasArcReactor))) {
+                        val activeBorderColor = if (isPressed && (theme.pressAnimation == PressAnimationType.NEON_GLOW || theme.hasBatSignal || theme.hasArcReactor)) {
                             theme.accentColor
                         } else borderColor
-                        val activeWidth = if (isPressed && (theme.pressAnimation == PressAnimationType.NEON_GLOW || theme.hasBatSignal)) {
+                        val activeWidth = if (isPressed && (theme.pressAnimation == PressAnimationType.NEON_GLOW || theme.hasBatSignal || theme.hasArcReactor)) {
                             borderWidth + 1.2.dp
                         } else borderWidth
                         Modifier.border(activeWidth, activeBorderColor, shape)

@@ -43,6 +43,10 @@ enum class ThemeId {
     NEON_VOID,
     QUANTUM_SUPERCONDUCTOR,
     BATMAN_DARK_KNIGHT,
+    IRON_MAN_MARK_85,
+    IRON_MAN_STEALTH,
+    IRON_MAN_SILVER_CENTURION,
+    IRON_MAN_HULKBUSTER,
     BIOLUMINESCENT_ABYSS,
     ARCADE_PHOSPHOR_84,
     PHANTOM_STEALTH,
@@ -106,6 +110,8 @@ data class ThemePalette(
     val displayFont: DisplayFontType,
     val hasScanlines: Boolean = false,
     val hasBatSignal: Boolean = false,
+    val hasArcReactor: Boolean = false,
+    val ironManSuit: IronManSuitType? = null,
     
     // Keypad - Number Keys (0-9, .)
     val numberButtonBg: Color,
@@ -155,3 +161,11 @@ data class ThemePalette(
         }
     }
 }
+
+enum class IronManSuitType {
+    MARK_85_CLASSIC,
+    STEALTH_STRIKE,
+    SILVER_CENTURION,
+    HULKBUSTER
+}
+

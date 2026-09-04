@@ -71,6 +71,7 @@ data class CalculatorUiState(
     val customShapeType: ButtonShapeType? = null,
     val customDisplayFont: DisplayFontType? = null,
     val expression: String = "",
+    val cursorPosition: Int = 0,
     val result: String = "0",
     val previewResult: String? = null,
     val angleMode: AngleMode = AngleMode.DEG,
@@ -569,26 +570,32 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
         _uiState.update { state ->
             var newExpr = state.expression
-            var newResult = state.result
+            val newResult = state.result
             val wasEvaluated = state.lastEvaluated
+            var newCursorPos = state.cursorPosition.coerceIn(0, state.expression.length)
 
             if (wasEvaluated) {
                 if ("+−×÷^%".contains(char)) {
-                    newExpr = if (newResult != "Error") newResult + char else ""
+                    newExpr = if (newResult != "Error") newResult + char else char
                 } else {
                     newExpr = char
                 }
+                newCursorPos = newExpr.length
             } else {
                 if (char == "%" && newExpr.isEmpty()) {
                     newExpr = "0%"
+                    newCursorPos = 2
                 } else {
-                    newExpr += char
+                    val pos = newCursorPos.coerceIn(0, newExpr.length)
+                    newExpr = newExpr.substring(0, pos) + char + newExpr.substring(pos)
+                    newCursorPos = pos + char.length
                 }
             }
 
             val preview = CalculatorEngine.evaluatePreview(newExpr, state.angleMode)
             state.copy(
                 expression = newExpr,
+                cursorPosition = newCursorPos,
                 previewResult = preview,
                 lastEvaluated = false
             )
@@ -601,14 +608,20 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
         _uiState.update { state ->
             var newExpr = state.expression
+            var newCursorPos = state.cursorPosition.coerceIn(0, state.expression.length)
+            val insertion = "$func("
             if (state.lastEvaluated) {
-                newExpr = if (state.result != "Error") "$func(${state.result})" else "$func("
+                newExpr = if (state.result != "Error") "$func(${state.result})" else insertion
+                newCursorPos = newExpr.length
             } else {
-                newExpr += "$func("
+                val pos = newCursorPos.coerceIn(0, newExpr.length)
+                newExpr = newExpr.substring(0, pos) + insertion + newExpr.substring(pos)
+                newCursorPos = pos + insertion.length
             }
             val preview = CalculatorEngine.evaluatePreview(newExpr, state.angleMode)
             state.copy(
                 expression = newExpr,
+                cursorPosition = newCursorPos,
                 previewResult = preview,
                 lastEvaluated = false
             )
@@ -620,10 +633,15 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled)
 
         _uiState.update { state ->
-            val newExpr = if (state.lastEvaluated) constant else state.expression + constant
+            val pos = state.cursorPosition.coerceIn(0, state.expression.length)
+            val newExpr = if (state.lastEvaluated) constant else {
+                state.expression.substring(0, pos) + constant + state.expression.substring(pos)
+            }
+            val newCursorPos = if (state.lastEvaluated) constant.length else pos + constant.length
             val preview = CalculatorEngine.evaluatePreview(newExpr, state.angleMode)
             state.copy(
                 expression = newExpr,
+                cursorPosition = newCursorPos,
                 previewResult = preview,
                 lastEvaluated = false
             )
@@ -646,7 +664,12 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                 "-"
             }
             val preview = CalculatorEngine.evaluatePreview(newExpr, state.angleMode)
-            state.copy(expression = newExpr, previewResult = preview, lastEvaluated = false)
+            state.copy(
+                expression = newExpr,
+                cursorPosition = newExpr.length,
+                previewResult = preview,
+                lastEvaluated = false
+            )
         }
     }
 
@@ -655,12 +678,25 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled)
 
         _uiState.update { state ->
-            if (state.expression.isNotEmpty()) {
-                val newExpr = state.expression.dropLast(1)
-                val preview = CalculatorEngine.evaluatePreview(newExpr, state.angleMode)
-                state.copy(expression = newExpr, previewResult = preview, lastEvaluated = false)
+            if (state.lastEvaluated) {
+                state.copy(lastEvaluated = false, cursorPosition = state.expression.length)
+            } else if (state.expression.isNotEmpty()) {
+                val pos = state.cursorPosition.coerceIn(0, state.expression.length)
+                if (pos > 0) {
+                    val newExpr = state.expression.substring(0, pos - 1) + state.expression.substring(pos)
+                    val newCursorPos = pos - 1
+                    val preview = CalculatorEngine.evaluatePreview(newExpr, state.angleMode)
+                    state.copy(
+                        expression = newExpr,
+                        cursorPosition = newCursorPos,
+                        previewResult = preview,
+                        lastEvaluated = false
+                    )
+                } else {
+                    state
+                }
             } else {
-                state.copy(result = "0", previewResult = null, lastEvaluated = false)
+                state.copy(result = "0", cursorPosition = 0, previewResult = null, lastEvaluated = false)
             }
         }
     }
@@ -672,6 +708,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update {
             it.copy(
                 expression = "",
+                cursorPosition = 0,
                 result = "0",
                 previewResult = null,
                 lastEvaluated = false
@@ -709,8 +746,48 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update {
             it.copy(
                 result = evaluated,
+                cursorPosition = evaluated.length,
                 previewResult = null,
                 lastEvaluated = true
+            )
+        }
+    }
+
+    fun setCursorPosition(pos: Int) {
+        _uiState.update {
+            it.copy(
+                cursorPosition = pos.coerceIn(0, it.expression.length),
+                lastEvaluated = false
+            )
+        }
+    }
+
+    fun moveCursorLeft() {
+        _uiState.update {
+            it.copy(
+                cursorPosition = (it.cursorPosition - 1).coerceAtLeast(0),
+                lastEvaluated = false
+            )
+        }
+    }
+
+    fun moveCursorRight() {
+        _uiState.update {
+            it.copy(
+                cursorPosition = (it.cursorPosition + 1).coerceAtMost(it.expression.length),
+                lastEvaluated = false
+            )
+        }
+    }
+
+    fun setExpressionFromWidget(expr: String) {
+        if (expr.isBlank()) return
+        _uiState.update {
+            it.copy(
+                expression = expr,
+                cursorPosition = expr.length,
+                result = expr,
+                lastEvaluated = false
             )
         }
     }
@@ -970,15 +1047,18 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             if (reuseAsExpression) {
                 it.copy(
                     expression = history.expression,
+                    cursorPosition = history.expression.length,
                     result = history.result,
                     previewResult = null,
                     lastEvaluated = true,
                     showHistorySheet = false
                 )
             } else {
+                val newExpr = it.expression + history.result.replace(",", "")
                 it.copy(
-                    expression = it.expression + history.result.replace(",", ""),
-                    previewResult = CalculatorEngine.evaluatePreview(it.expression + history.result.replace(",", ""), it.angleMode),
+                    expression = newExpr,
+                    cursorPosition = newExpr.length,
+                    previewResult = CalculatorEngine.evaluatePreview(newExpr, it.angleMode),
                     lastEvaluated = false,
                     showHistorySheet = false
                 )
@@ -1447,6 +1527,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         _uiState.update {
             it.copy(
                 expression = expr,
+                cursorPosition = expr.length,
                 result = "0",
                 mode = CalculatorMode.STANDARD
             )
