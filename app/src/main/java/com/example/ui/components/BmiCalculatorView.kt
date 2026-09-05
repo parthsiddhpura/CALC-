@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -77,18 +78,18 @@ fun BmiCalculatorView(
     val scrollState = rememberScrollState()
 
     val weightKg = if (isMetric) {
-        weightInput.toDoubleOrNull() ?: 68.0
+        weightInput.replace(",", "").replace(" ", "").toDoubleOrNull() ?: 68.0
     } else {
-        (weightInput.toDoubleOrNull() ?: 150.0) * 0.45359237
+        (weightInput.replace(",", "").replace(" ", "").toDoubleOrNull() ?: 150.0) * 0.45359237
     }
 
     val heightCm = if (isMetric) {
-        heightInput.toDoubleOrNull() ?: 172.0
+        heightInput.replace(",", "").replace(" ", "").toDoubleOrNull() ?: 172.0
     } else {
-        (heightInput.toDoubleOrNull() ?: 68.0) * 2.54
+        (heightInput.replace(",", "").replace(" ", "").toDoubleOrNull() ?: 68.0) * 2.54
     }
 
-    val age = ageInput.toIntOrNull() ?: 25
+    val age = ageInput.replace(",", "").replace(" ", "").toIntOrNull() ?: 25
 
     val bmiResult: BmiResult = remember(weightKg, heightCm, age, isMale) {
         BmiCalculatorEngine.calculate(weightKg, heightCm, age, isMale)
@@ -136,7 +137,7 @@ fun BmiCalculatorView(
                     ) {
                         Text(
                             text = "Metric (kg, cm)",
-                            color = if (metricSelected) theme.backgroundColor else theme.screenExpressionColor,
+                            color = if (metricSelected) (if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White) else theme.screenExpressionColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -152,7 +153,7 @@ fun BmiCalculatorView(
                     ) {
                         Text(
                             text = "US (lbs, in)",
-                            color = if (!metricSelected) theme.backgroundColor else theme.screenExpressionColor,
+                            color = if (!metricSelected) (if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White) else theme.screenExpressionColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -516,7 +517,8 @@ private fun BmiInputRow(
                 onClick = onDecrement,
                 modifier = Modifier
                     .size(32.dp)
-                    .background(theme.screenBackground, CircleShape)
+                    .background(theme.surfaceColor, CircleShape)
+                    .border(1.dp, theme.screenBorderColor.copy(alpha = 0.6f), CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Remove,
@@ -540,6 +542,10 @@ private fun BmiInputRow(
                     textAlign = TextAlign.Center
                 ),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = theme.screenTextColor,
+                    unfocusedTextColor = theme.screenTextColor,
+                    focusedContainerColor = theme.cardBackground,
+                    unfocusedContainerColor = theme.cardBackground,
                     focusedBorderColor = theme.accentColor,
                     unfocusedBorderColor = theme.screenBorderColor.copy(alpha = 0.5f)
                 )
@@ -549,7 +555,8 @@ private fun BmiInputRow(
                 onClick = onIncrement,
                 modifier = Modifier
                     .size(32.dp)
-                    .background(theme.screenBackground, CircleShape)
+                    .background(theme.surfaceColor, CircleShape)
+                    .border(1.dp, theme.screenBorderColor.copy(alpha = 0.6f), CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,

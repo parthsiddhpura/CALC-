@@ -2,6 +2,7 @@ package com.example.ui.components
 
 import android.app.TimePickerDialog
 import android.content.Intent
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -301,7 +302,7 @@ fun AgeCalculatorView(
                                 )
                                 Text(
                                     text = "Share",
-                                    color = theme.backgroundColor,
+                                    color = if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -323,6 +324,10 @@ fun AgeCalculatorView(
                         singleLine = true,
                         modifier = Modifier.weight(1f),
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = theme.screenTextColor,
+                            unfocusedTextColor = theme.screenTextColor,
+                            focusedContainerColor = theme.cardBackground,
+                            unfocusedContainerColor = theme.cardBackground,
                             focusedBorderColor = theme.accentColor,
                             unfocusedBorderColor = theme.screenBorderColor.copy(alpha = 0.4f)
                         ),

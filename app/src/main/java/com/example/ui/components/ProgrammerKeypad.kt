@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -117,7 +118,7 @@ fun ProgrammerKeypad(
                 ) {
                     Text(
                         text = ws.name,
-                        color = if (isSelected) theme.backgroundColor else theme.screenExpressionColor,
+                        color = if (isSelected) (if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White) else theme.screenTextColor,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
@@ -150,7 +151,7 @@ fun ProgrammerKeypad(
                     ) {
                         Text(
                             text = "$startBit",
-                            color = theme.screenExpressionColor.copy(alpha = 0.6f),
+                            color = theme.screenTextColor.copy(alpha = 0.75f),
                             fontSize = 9.sp,
                             fontFamily = FontFamily.Monospace,
                             modifier = Modifier.width(18.dp)
@@ -168,7 +169,7 @@ fun ProgrammerKeypad(
                                         .background(if (isSet) theme.accentColor else theme.cardBackground)
                                         .border(
                                             0.8.dp,
-                                            if (isSet) theme.accentColor else theme.surfaceColor,
+                                            if (isSet) theme.accentColor else theme.screenBorderColor.copy(alpha = 0.5f),
                                             RoundedCornerShape(4.dp)
                                         )
                                         .clickable { onBitToggle(b) },
@@ -176,7 +177,7 @@ fun ProgrammerKeypad(
                                 ) {
                                     Text(
                                         text = if (isSet) "1" else "0",
-                                        color = if (isSet) theme.backgroundColor else theme.screenExpressionColor,
+                                        color = if (isSet) (if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White) else theme.screenTextColor,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = FontFamily.Monospace

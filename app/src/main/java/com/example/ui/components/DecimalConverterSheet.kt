@@ -41,6 +41,10 @@ import androidx.compose.ui.unit.sp
 import com.example.domain.DecimalConversionItem
 import com.example.domain.DecimalConverterEngine
 import com.example.model.ThemePalette
+import com.example.model.onCardColor
+import com.example.model.onCardSubtextColor
+import com.example.model.onSurfaceSubtextColor
+import com.example.model.onSurfaceTextColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +63,7 @@ fun DecimalConverterSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = theme.surfaceColor,
-        contentColor = theme.screenTextColor,
+        contentColor = theme.onSurfaceTextColor,
         modifier = modifier
     ) {
         Column(
@@ -96,13 +100,13 @@ fun DecimalConverterSheet(
                     Column {
                         Text(
                             text = "Decimal & Format Conversion",
-                            color = theme.screenTextColor,
+                            color = theme.onSurfaceTextColor,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "Original: $targetValue",
-                            color = theme.screenExpressionColor,
+                            color = theme.onSurfaceSubtextColor,
                             fontSize = 13.sp,
                             fontFamily = FontFamily.Monospace
                         )
@@ -115,7 +119,7 @@ fun DecimalConverterSheet(
             if (items.isEmpty()) {
                 Text(
                     text = "Please enter a valid number to view decimal, fraction, and base conversions.",
-                    color = theme.screenExpressionColor,
+                    color = theme.onSurfaceSubtextColor,
                     fontSize = 14.sp,
                     modifier = Modifier.padding(vertical = 16.dp)
                 )
@@ -126,7 +130,7 @@ fun DecimalConverterSheet(
                 ) {
                     items(items, key = { it.title }) { item ->
                         Surface(
-                            color = theme.surfaceColor,
+                            color = theme.cardBackground,
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -156,7 +160,7 @@ fun DecimalConverterSheet(
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = item.value,
-                                        color = theme.screenTextColor,
+                                        color = theme.onCardColor,
                                         fontSize = 17.sp,
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = FontFamily.Monospace
@@ -164,7 +168,7 @@ fun DecimalConverterSheet(
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = item.description,
-                                        color = theme.screenExpressionColor,
+                                        color = theme.onCardSubtextColor,
                                         fontSize = 11.sp
                                     )
                                 }
@@ -179,7 +183,7 @@ fun DecimalConverterSheet(
                                     Icon(
                                         imageVector = Icons.Default.ContentCopy,
                                         contentDescription = "Copy",
-                                        tint = theme.screenExpressionColor,
+                                        tint = theme.onCardSubtextColor,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }

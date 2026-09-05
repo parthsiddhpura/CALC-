@@ -7,10 +7,11 @@ import androidx.room.RoomDatabase
 import com.example.model.AgeProfile
 import com.example.model.CalculationHistory
 
-@Database(entities = [CalculationHistory::class, AgeProfile::class], version = 2, exportSchema = false)
+@Database(entities = [CalculationHistory::class, AgeProfile::class, WorksheetEntity::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun historyDao(): HistoryDao
     abstract fun ageProfileDao(): AgeProfileDao
+    abstract fun worksheetDao(): WorksheetDao
 
     companion object {
         @Volatile

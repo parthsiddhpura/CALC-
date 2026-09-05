@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -77,9 +78,9 @@ fun EmiCalculatorView(
     val scrollState = rememberScrollState()
     var showAmortization by remember { mutableStateOf(false) }
 
-    val principal = principalInput.toDoubleOrNull() ?: 1000000.0
-    val annualRate = interestRateInput.toDoubleOrNull() ?: 8.5
-    val tenureVal = tenureYearsInput.toIntOrNull() ?: 20
+    val principal = principalInput.replace(",", "").replace(" ", "").toDoubleOrNull() ?: 1000000.0
+    val annualRate = interestRateInput.replace(",", "").replace(" ", "").toDoubleOrNull() ?: 8.5
+    val tenureVal = tenureYearsInput.replace(",", "").replace(" ", "").toIntOrNull() ?: 20
     val tenureMonths = if (isTenureInYears) tenureVal * 12 else tenureVal
 
     val emiResult: EmiResult = remember(principal, annualRate, tenureMonths) {
@@ -274,6 +275,10 @@ fun EmiCalculatorView(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = theme.screenTextColor,
+                            unfocusedTextColor = theme.screenTextColor,
+                            focusedContainerColor = theme.cardBackground,
+                            unfocusedContainerColor = theme.cardBackground,
                             focusedBorderColor = theme.accentColor,
                             unfocusedBorderColor = theme.screenBorderColor
                         )
@@ -287,15 +292,16 @@ fun EmiCalculatorView(
                         val presets = listOf(100000.0, 500000.0, 1000000.0, 2500000.0, 5000000.0)
                         items(presets) { pVal ->
                             Surface(
-                                color = theme.backgroundColor,
+                                color = theme.cardBackground,
                                 shape = RoundedCornerShape(8.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, theme.screenBorderColor.copy(alpha = 0.5f)),
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
                                     .clickable { onPrincipalChange(pVal.toLong().toString()) }
                             ) {
                                 Text(
                                     text = EmiCalculatorEngine.formatCompact(pVal),
-                                    color = theme.screenExpressionColor,
+                                    color = theme.screenTextColor,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -334,6 +340,10 @@ fun EmiCalculatorView(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = theme.screenTextColor,
+                            unfocusedTextColor = theme.screenTextColor,
+                            focusedContainerColor = theme.cardBackground,
+                            unfocusedContainerColor = theme.cardBackground,
                             focusedBorderColor = theme.accentColor,
                             unfocusedBorderColor = theme.screenBorderColor
                         )
@@ -352,15 +362,16 @@ fun EmiCalculatorView(
                         )
                         items(loanTypes) { (name, rVal) ->
                             Surface(
-                                color = theme.backgroundColor,
+                                color = theme.cardBackground,
                                 shape = RoundedCornerShape(8.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, theme.screenBorderColor.copy(alpha = 0.5f)),
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
                                     .clickable { onRateChange(rVal) }
                             ) {
                                 Text(
                                     text = name,
-                                    color = theme.screenExpressionColor,
+                                    color = theme.screenTextColor,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -390,12 +401,13 @@ fun EmiCalculatorView(
                         ) {
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
-                                color = if (isTenureInYears) theme.accentColor else theme.backgroundColor,
+                                color = if (isTenureInYears) theme.accentColor else theme.cardBackground,
+                                border = if (!isTenureInYears) androidx.compose.foundation.BorderStroke(1.dp, theme.screenBorderColor.copy(alpha = 0.5f)) else null,
                                 modifier = Modifier.clickable { onToggleTenureUnit(true) }
                             ) {
                                 Text(
                                     text = "Years",
-                                    color = if (isTenureInYears) theme.backgroundColor else theme.screenExpressionColor,
+                                    color = if (isTenureInYears) (if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White) else theme.screenTextColor,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -403,12 +415,13 @@ fun EmiCalculatorView(
                             }
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
-                                color = if (!isTenureInYears) theme.accentColor else theme.backgroundColor,
+                                color = if (!isTenureInYears) theme.accentColor else theme.cardBackground,
+                                border = if (isTenureInYears) androidx.compose.foundation.BorderStroke(1.dp, theme.screenBorderColor.copy(alpha = 0.5f)) else null,
                                 modifier = Modifier.clickable { onToggleTenureUnit(false) }
                             ) {
                                 Text(
                                     text = "Months",
-                                    color = if (!isTenureInYears) theme.backgroundColor else theme.screenExpressionColor,
+                                    color = if (!isTenureInYears) (if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White) else theme.screenTextColor,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -424,6 +437,10 @@ fun EmiCalculatorView(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = theme.screenTextColor,
+                            unfocusedTextColor = theme.screenTextColor,
+                            focusedContainerColor = theme.cardBackground,
+                            unfocusedContainerColor = theme.cardBackground,
                             focusedBorderColor = theme.accentColor,
                             unfocusedBorderColor = theme.screenBorderColor
                         )
@@ -437,15 +454,16 @@ fun EmiCalculatorView(
                         val tenurePresets = if (isTenureInYears) listOf(5, 10, 15, 20, 25, 30) else listOf(12, 24, 36, 60, 120, 240)
                         items(tenurePresets) { tVal ->
                             Surface(
-                                color = theme.backgroundColor,
+                                color = theme.cardBackground,
                                 shape = RoundedCornerShape(8.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, theme.screenBorderColor.copy(alpha = 0.5f)),
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(8.dp))
                                     .clickable { onTenureChange(tVal.toString()) }
                             ) {
                                 Text(
                                     text = if (isTenureInYears) "$tVal Yrs" else "$tVal Mo",
-                                    color = theme.screenExpressionColor,
+                                    color = theme.screenTextColor,
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -511,14 +529,15 @@ fun EmiCalculatorView(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(theme.backgroundColor.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                                .background(theme.cardBackground, RoundedCornerShape(6.dp))
+                                .border(1.dp, theme.screenBorderColor.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
                                 .padding(horizontal = 8.dp, vertical = 6.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Year", color = theme.screenExpressionColor, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(36.dp))
-                            Text("Principal", color = theme.screenExpressionColor, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-                            Text("Interest", color = theme.screenExpressionColor, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
-                            Text("Balance", color = theme.screenExpressionColor, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1.1f), textAlign = TextAlign.End)
+                            Text("Year", color = theme.screenTextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(36.dp))
+                            Text("Principal", color = theme.screenTextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                            Text("Interest", color = theme.screenTextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                            Text("Balance", color = theme.screenTextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1.1f), textAlign = TextAlign.End)
                         }
 
                         // Rows

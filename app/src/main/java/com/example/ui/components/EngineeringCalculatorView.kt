@@ -62,6 +62,9 @@ import com.example.domain.EngineeringConstantItem
 import com.example.domain.EngineeringEngine
 import com.example.model.ThemePalette
 
+private fun String.toCleanDoubleOrNull(): Double? =
+    this.replace(",", "").replace(" ", "").toDoubleOrNull()
+
 @Composable
 fun EngineeringCalculatorView(
     theme: ThemePalette,
@@ -133,10 +136,10 @@ private fun OhmsLawSection(theme: ThemePalette) {
     var resistanceInput by remember { mutableStateOf("") }
     var powerInput by remember { mutableStateOf("") }
 
-    val v = voltageInput.toDoubleOrNull()
-    val i = currentInput.toDoubleOrNull()
-    val r = resistanceInput.toDoubleOrNull()
-    val p = powerInput.toDoubleOrNull()
+    val v = voltageInput.toCleanDoubleOrNull()
+    val i = currentInput.toCleanDoubleOrNull()
+    val r = resistanceInput.toCleanDoubleOrNull()
+    val p = powerInput.toCleanDoubleOrNull()
 
     val result = remember(v, i, r, p) {
         EngineeringEngine.calcOhmsLaw(v, i, r, p)
@@ -205,11 +208,11 @@ private fun CircuitsSection(theme: ThemePalette) {
     var rFilterInput by remember { mutableStateOf("1000") }
     var cFilterInput by remember { mutableStateOf("10") }
 
-    val r1 = r1Input.toDoubleOrNull() ?: 0.0
-    val r2 = r2Input.toDoubleOrNull() ?: 0.0
-    val r3 = r3Input.toDoubleOrNull() ?: 0.0
-    val rFilter = rFilterInput.toDoubleOrNull() ?: 1000.0
-    val cFilter = cFilterInput.toDoubleOrNull() ?: 10.0
+    val r1 = r1Input.toCleanDoubleOrNull() ?: 0.0
+    val r2 = r2Input.toCleanDoubleOrNull() ?: 0.0
+    val r3 = r3Input.toCleanDoubleOrNull() ?: 0.0
+    val rFilter = rFilterInput.toCleanDoubleOrNull() ?: 1000.0
+    val cFilter = cFilterInput.toCleanDoubleOrNull() ?: 10.0
 
     val resistorResult = remember(r1, r2, r3) {
         EngineeringEngine.calcSeriesParallel(r1, r2, r3)
@@ -292,11 +295,11 @@ private fun MechanicsSection(theme: ThemePalette) {
     var radiusInput by remember { mutableStateOf("0.25") }
     var rpmInput by remember { mutableStateOf("1500") }
 
-    val m = massInput.toDoubleOrNull() ?: 0.0
-    val a = accelInput.toDoubleOrNull() ?: 0.0
-    val f = forceInput.toDoubleOrNull() ?: 0.0
-    val r = radiusInput.toDoubleOrNull() ?: 0.0
-    val rpm = rpmInput.toDoubleOrNull() ?: 0.0
+    val m = massInput.toCleanDoubleOrNull() ?: 0.0
+    val a = accelInput.toCleanDoubleOrNull() ?: 0.0
+    val f = forceInput.toCleanDoubleOrNull() ?: 0.0
+    val r = radiusInput.toCleanDoubleOrNull() ?: 0.0
+    val rpm = rpmInput.toCleanDoubleOrNull() ?: 0.0
 
     val forceResult = remember(m, a) { EngineeringEngine.calcNewtonForce(m, a) }
     val torqueResult = remember(f, r, rpm) { EngineeringEngine.calcTorquePower(f, r, rpm) }
@@ -371,9 +374,9 @@ private fun EnergyPowerSection(theme: ThemePalette) {
     var velocityInput by remember { mutableStateOf("25") }
     var heightInput by remember { mutableStateOf("10") }
 
-    val m = massInput.toDoubleOrNull() ?: 0.0
-    val v = velocityInput.toDoubleOrNull() ?: 0.0
-    val h = heightInput.toDoubleOrNull() ?: 0.0
+    val m = massInput.toCleanDoubleOrNull() ?: 0.0
+    val v = velocityInput.toCleanDoubleOrNull() ?: 0.0
+    val h = heightInput.toCleanDoubleOrNull() ?: 0.0
 
     val energyResult = remember(m, v, h) {
         EngineeringEngine.calcKineticPotentialEnergy(m, v, h)
@@ -422,10 +425,10 @@ private fun StressStrainSection(theme: ThemePalette) {
     var origLenInput by remember { mutableStateOf("1000") }
     var deltaLenInput by remember { mutableStateOf("1.2") }
 
-    val f = forceInput.toDoubleOrNull() ?: 0.0
-    val a = areaInput.toDoubleOrNull() ?: 0.0
-    val l0 = origLenInput.toDoubleOrNull() ?: 1000.0
-    val dl = deltaLenInput.toDoubleOrNull() ?: 1.0
+    val f = forceInput.toCleanDoubleOrNull() ?: 0.0
+    val a = areaInput.toCleanDoubleOrNull() ?: 0.0
+    val l0 = origLenInput.toCleanDoubleOrNull() ?: 1000.0
+    val dl = deltaLenInput.toCleanDoubleOrNull() ?: 1.0
 
     val stressResult = remember(f, a, l0, dl) {
         EngineeringEngine.calcStressStrain(f, a, l0, dl)
@@ -489,13 +492,13 @@ private fun FluidThermalSection(theme: ThemePalette) {
     var specificHeatInput by remember { mutableStateOf("4184") } // Water = 4184 J/kg°C
     var deltaTInput by remember { mutableStateOf("40") }
 
-    val f = forceInput.toDoubleOrNull() ?: 0.0
-    val a = areaInput.toDoubleOrNull() ?: 0.0
-    val d = depthInput.toDoubleOrNull() ?: 0.0
+    val f = forceInput.toCleanDoubleOrNull() ?: 0.0
+    val a = areaInput.toCleanDoubleOrNull() ?: 0.0
+    val d = depthInput.toCleanDoubleOrNull() ?: 0.0
 
-    val hm = heatMassInput.toDoubleOrNull() ?: 0.0
-    val cp = specificHeatInput.toDoubleOrNull() ?: 4184.0
-    val dt = deltaTInput.toDoubleOrNull() ?: 0.0
+    val hm = heatMassInput.toCleanDoubleOrNull() ?: 0.0
+    val cp = specificHeatInput.toCleanDoubleOrNull() ?: 4184.0
+    val dt = deltaTInput.toCleanDoubleOrNull() ?: 0.0
 
     val fluidResult = remember(f, a, d) { EngineeringEngine.calcHydraulicPressure(f, a, d) }
     val heatResult = remember(hm, cp, dt) { EngineeringEngine.calcThermalHeatTransfer(hm, cp, dt) }
@@ -580,10 +583,10 @@ private fun StructuralBeamSection(theme: ThemePalette) {
     var modulusGpaInput by remember { mutableStateOf("200") }
     var inertiaInput by remember { mutableStateOf("5000") }
 
-    val load = loadKnInput.toDoubleOrNull() ?: 0.0
-    val len = lengthInput.toDoubleOrNull() ?: 0.0
-    val mod = modulusGpaInput.toDoubleOrNull() ?: 200.0
-    val i = inertiaInput.toDoubleOrNull() ?: 5000.0
+    val load = loadKnInput.toCleanDoubleOrNull() ?: 0.0
+    val len = lengthInput.toCleanDoubleOrNull() ?: 0.0
+    val mod = modulusGpaInput.toCleanDoubleOrNull() ?: 200.0
+    val i = inertiaInput.toCleanDoubleOrNull() ?: 5000.0
 
     val beamResult = remember(load, len, isUdl, mod, i) {
         EngineeringEngine.calcBeamBending(load, len, isUdl, mod, i)
@@ -833,6 +836,10 @@ private fun EngineeringInput(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
         shape = RoundedCornerShape(10.dp),
         colors = OutlinedTextFieldDefaults.colors(
+            focusedTextColor = theme.screenTextColor,
+            unfocusedTextColor = theme.screenTextColor,
+            focusedContainerColor = theme.cardBackground,
+            unfocusedContainerColor = theme.cardBackground,
             focusedBorderColor = theme.accentColor,
             unfocusedBorderColor = theme.screenBorderColor.copy(alpha = 0.35f),
             focusedLabelColor = theme.accentColor,

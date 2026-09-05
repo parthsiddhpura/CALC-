@@ -40,12 +40,12 @@ object CalculatorEngine {
      */
     fun evaluatePreview(expression: String, angleMode: AngleMode): String? {
         if (expression.isBlank()) return null
-        val trimmed = expression.trim()
+        val cleanPreview = expression.trim().replace(",", "").replace(Regex("(?<=\\d)\\s+(?=\\d)"), "")
         // If it's just a single number, no need for preview
-        if (trimmed.toDoubleOrNull() != null) return null
+        if (cleanPreview.toDoubleOrNull() != null) return null
 
         // Try balancing open parentheses
-        var balanced = trimmed
+        var balanced = expression.trim()
         val openCount = balanced.count { it == '(' }
         val closeCount = balanced.count { it == ')' }
         if (openCount > closeCount) {
@@ -53,11 +53,10 @@ object CalculatorEngine {
         }
 
         // Remove trailing operator if user just typed it (excluding % which is a complete postfix operator)
-        val lastChar = balanced.lastOrNull()
-        if (lastChar != null && "+−-×*÷/^".contains(lastChar)) {
+        while (balanced.isNotEmpty() && "+−-×*÷/^".contains(balanced.last())) {
             balanced = balanced.dropLast(1).trim()
-            if (balanced.isBlank()) return null
         }
+        if (balanced.isBlank()) return null
 
         return try {
             val cleanExpr = prepareExpression(balanced)
@@ -71,7 +70,10 @@ object CalculatorEngine {
     }
 
     private fun prepareExpression(expr: String): String {
+        // 1. Strip commas (thousands grouping separators) and formatting spaces between digits
         var s = expr
+            .replace(",", "")
+            .replace(Regex("(?<=\\d)\\s+(?=\\d)"), "")
             .replace("×", "*")
             .replace("÷", "/")
             .replace("−", "-")
@@ -90,6 +92,8 @@ object CalculatorEngine {
         // Handle implicit multiplication using precompiled regexes
         s = s.replace(IMPLICIT_REGEX, "$1*$2")
         s = s.replace(NUM_CONST_REGEX, "$1*$2")
+        s = s.replace(Regex("\\)\\s*([0-9πeφ])"), ")*$1")
+        s = s.replace(Regex("(PI|E|PHI)\\s*([0-9])"), "$1*$2")
 
         // Implicit multiplication after percent (e.g. 10%7 -> 10%*7, 10%(5) -> 10%*(5))
         s = s.replace(Regex("%\\s*([0-9(PIEPHIsqrtcbrtsincostan])"), "%*$1")
@@ -151,6 +155,16 @@ object CalculatorEngine {
                 val isUnary = prev == null || prev == "(" || isOperator(prev)
                 if (isUnary) {
                     tokens.add("NEG")
+                    i++
+                    continue
+                }
+            }
+
+            // Check for unary plus (e.g. +5 or 5*+2) - skip harmlessly
+            if (c == '+') {
+                val prev = tokens.lastOrNull()
+                val isUnary = prev == null || prev == "(" || isOperator(prev)
+                if (isUnary) {
                     i++
                     continue
                 }
@@ -307,6 +321,7 @@ object CalculatorEngine {
             }
         }
 
+        if (stack.size > 1) return Double.NaN
         return if (stack.isNotEmpty()) stack.pop() else 0.0
     }
 

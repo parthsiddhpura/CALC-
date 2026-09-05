@@ -76,6 +76,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
@@ -602,17 +603,18 @@ fun CustomCalculatorBuilderView(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
+                        val chipSelectedColor = if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White
                         if (calc.isUserCreated) {
                             Icon(
                                 imageVector = Icons.Default.Bookmark,
                                 contentDescription = null,
-                                tint = if (isSelected) theme.backgroundColor else theme.accentColor,
+                                tint = if (isSelected) chipSelectedColor else theme.accentColor,
                                 modifier = Modifier.size(12.dp)
                             )
                         }
                         Text(
                             text = calc.title,
-                            color = if (isSelected) theme.backgroundColor else theme.screenTextColor,
+                            color = if (isSelected) chipSelectedColor else theme.screenTextColor,
                             fontSize = 11.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                         )

@@ -39,6 +39,42 @@ class ExampleUnitTest {
   }
 
   @Test
+  fun chained_calculations_and_formatting() {
+    // Evaluation with commas from previous result (e.g., user result was 21,672,730 and multiplies by 5)
+    assertEquals("21,672,730", CalculatorEngine.evaluate("4334546 × 5", AngleMode.DEG))
+    assertEquals("108,363,650", CalculatorEngine.evaluate("21,672,730 × 5", AngleMode.DEG))
+    assertEquals("108,363,650", CalculatorEngine.evaluate("2,16,72,730 × 5", AngleMode.DEG))
+    assertEquals("108,363,650", CalculatorEngine.evaluatePreview("21,672,730 × 5", AngleMode.DEG))
+    assertEquals("108,363,650", CalculatorEngine.evaluatePreview("2,16,72,730 × 5", AngleMode.DEG))
+
+    // Display Formatter Indian, Space, None, Comma formatting
+    val indianFormatted = com.example.model.DisplayFormatter.formatNumber("21672730", com.example.model.DisplaySeparatorStyle.INDIAN)
+    assertEquals("2,16,72,730", indianFormatted)
+
+    // Formatter handles numbers that already had commas
+    val indianFromComma = com.example.model.DisplayFormatter.formatNumber("21,672,730", com.example.model.DisplaySeparatorStyle.INDIAN)
+    assertEquals("2,16,72,730", indianFromComma)
+
+    val spaceFormatted = com.example.model.DisplayFormatter.formatNumber("21,672,730", com.example.model.DisplaySeparatorStyle.SPACE)
+    assertEquals("21 672 730", spaceFormatted)
+
+    val noneFormatted = com.example.model.DisplayFormatter.formatNumber("21,672,730", com.example.model.DisplaySeparatorStyle.NONE)
+    assertEquals("21672730", noneFormatted)
+
+    // Expression formatting with Indian separator
+    val exprIndian = com.example.model.DisplayFormatter.formatExpression("4334546×5", com.example.model.DisplaySeparatorStyle.INDIAN)
+    assertEquals("43,34,546×5", exprIndian)
+
+    // Implicit multiplication & functions
+    assertEquals("14", CalculatorEngine.evaluate("2(3+4)", AngleMode.DEG))
+    assertEquals("35", CalculatorEngine.evaluate("(3+4)5", AngleMode.DEG))
+    assertEquals("3", CalculatorEngine.evaluate("√9", AngleMode.DEG))
+    assertEquals("6", CalculatorEngine.evaluate("2√9", AngleMode.DEG))
+    assertEquals("8", CalculatorEngine.evaluate("+5 + +3", AngleMode.DEG))
+    assertEquals("-8", CalculatorEngine.evaluate("-(5+3)", AngleMode.DEG))
+  }
+
+  @Test
   fun themes_allRegisteredAndValid() {
     val themes = com.example.ui.theme.CalculatorThemes.allThemes
     assertTrue("Themes count should be 49", themes.size >= 49)

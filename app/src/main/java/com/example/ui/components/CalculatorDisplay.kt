@@ -65,6 +65,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -140,6 +141,8 @@ fun CalculatorDisplay(
         DisplayFontType.DIGITAL_LCD -> FontFamily.Monospace
         DisplayFontType.MODERN_SANS -> FontFamily.SansSerif
         DisplayFontType.ROUNDED -> FontFamily.SansSerif
+        DisplayFontType.PIXEL_8BIT -> FontFamily.Monospace
+        DisplayFontType.KAWAII_CANDY -> FontFamily.SansSerif
     }
 
     val screenShape = RoundedCornerShape(theme.cornerRadiusDp.coerceAtLeast(14.dp))
@@ -229,9 +232,10 @@ fun CalculatorDisplay(
             Canvas(modifier = Modifier.matchParentSize()) {
                 val step = 4.dp.toPx()
                 var y = 0f
+                val scanlineColor = theme.screenTextColor.copy(alpha = 0.10f)
                 while (y < size.height) {
                     drawLine(
-                        color = Color(0x2200FF66),
+                        color = scanlineColor,
                         start = Offset(0f, y),
                         end = Offset(size.width, y),
                         strokeWidth = 1f
@@ -281,8 +285,9 @@ fun CalculatorDisplay(
                     ) {
                         // Mode Badge
                         Surface(
-                            color = theme.accentColor.copy(alpha = 0.15f),
-                            shape = RoundedCornerShape(6.dp)
+                            color = theme.accentColor.copy(alpha = 0.22f),
+                            shape = RoundedCornerShape(6.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, theme.accentColor.copy(alpha = 0.7f))
                         ) {
                             Text(
                                 text = mode.shortName.uppercase(),
@@ -352,11 +357,76 @@ fun CalculatorDisplay(
                             }
                         }
 
+                        // Kawaii Themes Status Badges
+                        if (theme.isGirlMath) {
+                            Surface(
+                                color = Color(0xFFFF5277).copy(alpha = 0.18f),
+                                shape = RoundedCornerShape(6.dp),
+                                border = androidx.compose.foundation.BorderStroke(0.8.dp, Color(0xFFFF85A1).copy(alpha = 0.6f))
+                            ) {
+                                Text(
+                                    text = "GIRL MATH ♡",
+                                    color = Color(0xFFFF5277),
+                                    fontSize = if (isCompact) 8.sp else 9.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    modifier = Modifier.padding(horizontal = if (isCompact) 5.dp else 7.dp, vertical = 2.dp)
+                                )
+                            }
+                        } else if (theme.isNekoMochi) {
+                            Surface(
+                                color = Color(0xFFFF85A1).copy(alpha = 0.28f),
+                                shape = RoundedCornerShape(6.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFF85A1).copy(alpha = 0.8f))
+                            ) {
+                                Text(
+                                    text = if (theme.isDark) "🐾 NEKO MIDNIGHT" else "🐾 NEKO MOCHI",
+                                    color = Color(0xFFFFEBF0),
+                                    fontSize = if (isCompact) 8.5.sp else 9.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    modifier = Modifier.padding(horizontal = if (isCompact) 5.dp else 7.dp, vertical = 2.dp)
+                                )
+                            }
+                        } else if (theme.isY2kGlossy) {
+                            Surface(
+                                color = Color(0xFFA2E8DD).copy(alpha = 0.25f),
+                                shape = RoundedCornerShape(6.dp),
+                                border = androidx.compose.foundation.BorderStroke(0.8.dp, Color(0xFFA2E8DD))
+                            ) {
+                                Text(
+                                    text = "Y2K POP ✨",
+                                    color = Color(0xFF144740),
+                                    fontSize = if (isCompact) 8.sp else 9.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    modifier = Modifier.padding(horizontal = if (isCompact) 5.dp else 7.dp, vertical = 2.dp)
+                                )
+                            }
+                        } else if (theme.isPixelArt) {
+                            Surface(
+                                color = Color(0xFF00FF66).copy(alpha = 0.16f),
+                                shape = RoundedCornerShape(4.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF00FF66).copy(alpha = 0.6f))
+                            ) {
+                                Text(
+                                    text = "👾 PICO-CALC",
+                                    color = Color(0xFF00FF66),
+                                    fontSize = if (isCompact) 8.sp else 9.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                    maxLines = 1,
+                                    modifier = Modifier.padding(horizontal = if (isCompact) 5.dp else 7.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
                         // Angle Mode Badge (DEG / RAD) - Tap to toggle!
                         if (mode == CalculatorMode.STANDARD || mode == CalculatorMode.SCIENTIFIC) {
                             Surface(
-                                color = theme.secondaryAccent.copy(alpha = 0.15f),
+                                color = theme.secondaryAccent.copy(alpha = 0.22f),
                                 shape = RoundedCornerShape(6.dp),
+                                border = androidx.compose.foundation.BorderStroke(0.8.dp, theme.secondaryAccent.copy(alpha = 0.7f)),
                                 modifier = if (onToggleAngleMode != null) {
                                     Modifier.clickable { onToggleAngleMode() }
                                 } else Modifier
@@ -394,14 +464,15 @@ fun CalculatorDisplay(
                         // Display Notation Badge if non-standard
                         if (displayConfig.notation != DisplayNotation.STANDARD) {
                             Surface(
-                                color = theme.surfaceColor,
-                                shape = RoundedCornerShape(6.dp)
+                                color = theme.accentColor.copy(alpha = 0.22f),
+                                shape = RoundedCornerShape(6.dp),
+                                border = androidx.compose.foundation.BorderStroke(0.8.dp, theme.accentColor.copy(alpha = 0.7f))
                             ) {
                                 Text(
                                     text = if (displayConfig.notation == DisplayNotation.SCIENTIFIC) "SCI" else "ENG",
-                                    color = theme.screenExpressionColor,
+                                    color = theme.accentColor,
                                     fontSize = if (isCompact) 8.sp else 10.sp,
-                                    fontWeight = FontWeight.SemiBold,
+                                    fontWeight = FontWeight.Bold,
                                     fontFamily = fontFamily,
                                     maxLines = 1,
                                     modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
@@ -413,6 +484,20 @@ fun CalculatorDisplay(
                     Spacer(modifier = Modifier.width(1.dp))
                 }
 
+                // Screen pill styling matching screen luminance
+                val isScreenDark = theme.screenBackground.luminance() < 0.45f
+                val screenPillBg = if (isScreenDark) {
+                    Color.White.copy(alpha = 0.12f)
+                } else {
+                    Color.Black.copy(alpha = 0.08f)
+                }
+                val screenPillBorder = if (isScreenDark) {
+                    androidx.compose.foundation.BorderStroke(0.8.dp, Color.White.copy(alpha = 0.22f))
+                } else {
+                    androidx.compose.foundation.BorderStroke(0.8.dp, Color.Black.copy(alpha = 0.12f))
+                }
+                val screenActionTint = theme.screenTextColor
+
                 // Right Actions: Quick Copy Icon, Decimal Converter (F↔D / DEC) and History Icon
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -421,7 +506,8 @@ fun CalculatorDisplay(
                     // Quick Copy Action Button (only active after calculation equals is pressed)
                     Surface(
                         shape = CircleShape,
-                        color = if (justCopied) theme.accentColor.copy(alpha = 0.25f) else theme.surfaceColor,
+                        color = if (justCopied) theme.accentColor.copy(alpha = 0.35f) else screenPillBg,
+                        border = if (justCopied) androidx.compose.foundation.BorderStroke(1.dp, theme.accentColor) else screenPillBorder,
                         modifier = Modifier
                             .clip(CircleShape)
                             .then(
@@ -445,9 +531,9 @@ fun CalculatorDisplay(
                                 tint = if (justCopied) {
                                     theme.accentColor
                                 } else if (canCopy) {
-                                    theme.screenExpressionColor
+                                    screenActionTint
                                 } else {
-                                    theme.screenExpressionColor.copy(alpha = 0.3f)
+                                    screenActionTint.copy(alpha = 0.35f)
                                 },
                                 modifier = Modifier.size(if (isCompact) 12.dp else 14.dp)
                             )
@@ -458,15 +544,16 @@ fun CalculatorDisplay(
                     if (onOpenDecimalConverter != null) {
                         Surface(
                             shape = RoundedCornerShape(8.dp),
-                            color = theme.surfaceColor,
+                            color = theme.accentColor.copy(alpha = 0.16f),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, theme.accentColor.copy(alpha = 0.6f)),
                             modifier = Modifier
                                 .clickable { onOpenDecimalConverter() }
                                 .testTag("btn_display_decimal_conv")
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = if (isCompact) 4.dp else 6.dp, vertical = 2.dp),
+                                modifier = Modifier.padding(horizontal = if (isCompact) 5.dp else 7.dp, vertical = 2.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                horizontalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Transform,
@@ -490,7 +577,8 @@ fun CalculatorDisplay(
                     if (onOpenHistory != null) {
                         Surface(
                             shape = CircleShape,
-                            color = theme.surfaceColor,
+                            color = screenPillBg,
+                            border = screenPillBorder,
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .clickable { onOpenHistory() }
@@ -515,7 +603,7 @@ fun CalculatorDisplay(
                                 Icon(
                                     imageVector = Icons.Default.History,
                                     contentDescription = "History",
-                                    tint = theme.screenTextColor,
+                                    tint = screenActionTint,
                                     modifier = Modifier.size(if (isCompact) 13.dp else 16.dp)
                                 )
                             }

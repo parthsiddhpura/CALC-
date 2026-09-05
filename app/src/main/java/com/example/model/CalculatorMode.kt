@@ -14,7 +14,8 @@ enum class CalculatorMode(val title: String, val shortName: String) {
     ENGINEERING("Engineering", "Eng"),
     CUSTOM_BUILDER("Build a Calc", "Builder"),
     CALCULATION_CHAINS("Chains & Flow", "Chains"),
-    AI_COPILOT("AI Math Copilot", "AI Copilot")
+    AI_COPILOT("AI Math Copilot", "AI Copilot"),
+    WORKSHEET_TAPE("Worksheet & Tape", "Tape")
 }
 
 enum class AngleMode {

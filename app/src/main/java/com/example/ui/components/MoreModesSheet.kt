@@ -47,6 +47,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +56,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.CalculatorMode
 import com.example.model.ThemePalette
+import com.example.model.onCardColor
+import com.example.model.onCardSubtextColor
+import com.example.model.onSurfaceSubtextColor
+import com.example.model.onSurfaceTextColor
 
 data class ModeItemData(
     val mode: CalculatorMode,
@@ -64,6 +70,13 @@ data class ModeItemData(
 )
 
 val MORE_MODES = listOf(
+    ModeItemData(
+        mode = CalculatorMode.WORKSHEET_TAPE,
+        title = "Worksheet & Paper Tape",
+        description = "Step-by-step accounting tape, reactive variable math, drag-to-fit keypad & multi-sheet documents",
+        icon = Icons.Default.ReceiptLong,
+        badgeText = "NEW"
+    ),
     ModeItemData(
         mode = CalculatorMode.CUSTOM_BUILDER,
         title = "Build Me a Calculator",
@@ -148,7 +161,7 @@ fun MoreModesSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = theme.surfaceColor,
-        contentColor = theme.screenTextColor,
+        contentColor = theme.onSurfaceTextColor,
         modifier = modifier
     ) {
         Column(
@@ -183,13 +196,13 @@ fun MoreModesSheet(
                     Column {
                         Text(
                             text = "More Calculators & Tools",
-                            color = theme.screenTextColor,
+                            color = theme.onSurfaceTextColor,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "Specialized calculation modes",
-                            color = theme.screenExpressionColor,
+                            color = theme.onSurfaceSubtextColor,
                             fontSize = 12.sp
                         )
                     }
@@ -199,7 +212,7 @@ fun MoreModesSheet(
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Close",
-                        tint = theme.screenTextColor
+                        tint = theme.onSurfaceTextColor
                     )
                 }
             }
@@ -221,7 +234,7 @@ fun MoreModesSheet(
                         color = theme.cardBackground,
                         border = androidx.compose.foundation.BorderStroke(
                             width = if (isSelected) 2.dp else 1.dp,
-                            color = if (isSelected) theme.accentColor else theme.screenBorderColor.copy(alpha = 0.25f)
+                            color = if (isSelected) theme.accentColor else (if (theme.surfaceColor.luminance() > 0.45f) theme.accentColor.copy(alpha = 0.35f) else theme.screenBorderColor.copy(alpha = 0.25f))
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -252,7 +265,9 @@ fun MoreModesSheet(
                                         Icon(
                                             imageVector = item.icon,
                                             contentDescription = null,
-                                            tint = if (isSelected) theme.backgroundColor else theme.accentColor,
+                                            tint = if (isSelected) {
+                                                if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White
+                                            } else theme.accentColor,
                                             modifier = Modifier.size(22.dp)
                                         )
                                     }
@@ -266,7 +281,7 @@ fun MoreModesSheet(
                                     ) {
                                         Text(
                                             text = item.title,
-                                            color = theme.screenTextColor,
+                                            color = theme.onCardColor,
                                             fontSize = 15.sp,
                                             fontWeight = FontWeight.Bold,
                                             modifier = Modifier.weight(1f, fill = false)
@@ -296,7 +311,7 @@ fun MoreModesSheet(
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = item.description,
-                                        color = theme.screenExpressionColor,
+                                        color = theme.onCardSubtextColor,
                                         fontSize = 11.sp,
                                         lineHeight = 15.sp
                                     )
@@ -313,7 +328,7 @@ fun MoreModesSheet(
                                         Icon(
                                             imageVector = Icons.Default.Check,
                                             contentDescription = "Selected",
-                                            tint = theme.backgroundColor,
+                                            tint = if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White,
                                             modifier = Modifier.size(14.dp)
                                         )
                                     }

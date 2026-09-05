@@ -32,7 +32,7 @@ enum class DisplayNotation(val displayName: String, val sample: String) {
 }
 
 data class DisplayConfig(
-    val separatorStyle: DisplaySeparatorStyle = DisplaySeparatorStyle.COMMA,
+    val separatorStyle: DisplaySeparatorStyle = DisplaySeparatorStyle.INDIAN,
     val precisionMode: DisplayPrecisionMode = DisplayPrecisionMode.AUTO,
     val scaleSize: DisplayScaleSize = DisplayScaleSize.STANDARD,
     val notation: DisplayNotation = DisplayNotation.STANDARD,
@@ -46,11 +46,11 @@ object DisplayFormatter {
 
     fun formatNumber(
         valueStr: String,
-        separatorStyle: DisplaySeparatorStyle = DisplaySeparatorStyle.COMMA,
+        separatorStyle: DisplaySeparatorStyle = DisplaySeparatorStyle.INDIAN,
         precisionMode: DisplayPrecisionMode = DisplayPrecisionMode.AUTO,
         notation: DisplayNotation = DisplayNotation.STANDARD
     ): String {
-        val clean = valueStr.trim()
+        val clean = valueStr.trim().replace(",", "").replace(Regex("(?<=\\d)\\s+(?=\\d)"), "")
         if (clean.isEmpty() || clean == "Error" || clean == "NaN" || clean == "Infinity" || clean == "-Infinity") {
             return clean
         }
@@ -164,7 +164,7 @@ object DisplayFormatter {
 
     fun formatExpression(
         expression: String,
-        separatorStyle: DisplaySeparatorStyle = DisplaySeparatorStyle.COMMA
+        separatorStyle: DisplaySeparatorStyle = DisplaySeparatorStyle.INDIAN
     ): String {
         if (expression.isEmpty() || separatorStyle == DisplaySeparatorStyle.NONE) return expression
 
@@ -177,8 +177,9 @@ object DisplayFormatter {
         var matchIdx = 0
 
         for (token in tokens) {
-            if (token.isNotBlank() && token.all { it.isDigit() || it == '.' }) {
-                sb.append(formatNumber(token, separatorStyle, DisplayPrecisionMode.AUTO, DisplayNotation.STANDARD))
+            val cleanToken = token.replace(",", "").replace(Regex("(?<=\\d)\\s+(?=\\d)"), "")
+            if (cleanToken.isNotBlank() && cleanToken.all { it.isDigit() || it == '.' }) {
+                sb.append(formatNumber(cleanToken, separatorStyle, DisplayPrecisionMode.AUTO, DisplayNotation.STANDARD))
             } else {
                 sb.append(token)
             }

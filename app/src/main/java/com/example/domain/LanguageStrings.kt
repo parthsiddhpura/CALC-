@@ -22,6 +22,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "Build a Calc"
                 CalculatorMode.CALCULATION_CHAINS -> "Chains & Flow"
                 CalculatorMode.AI_COPILOT -> "AI Math Copilot"
+                CalculatorMode.WORKSHEET_TAPE -> "Worksheet & Tape"
             }
             AppLanguage.SPANISH -> when (mode) {
                 CalculatorMode.STANDARD -> "Estándar"
@@ -38,6 +39,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "Creador IA"
                 CalculatorMode.CALCULATION_CHAINS -> "Cadenas de Flujo"
                 CalculatorMode.AI_COPILOT -> "Copiloto IA"
+                CalculatorMode.WORKSHEET_TAPE -> "Hoja de Cálculo & Cinta"
             }
             AppLanguage.HINDI -> when (mode) {
                 CalculatorMode.STANDARD -> "मानक कैलकुलेटर"
@@ -54,6 +56,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "कैलकुलेटर बनाएं"
                 CalculatorMode.CALCULATION_CHAINS -> "गणना श्रृंखला"
                 CalculatorMode.AI_COPILOT -> "एआई मैथ कोपायलट"
+                CalculatorMode.WORKSHEET_TAPE -> "वर्कशीट एवं पेपर टेप"
             }
             AppLanguage.GUJARATI -> when (mode) {
                 CalculatorMode.STANDARD -> "સ્ટાન્ડર્ડ કેલ્ક્યુલેટર"
@@ -70,6 +73,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "કેલ્ક્યુલેટર બનાવો"
                 CalculatorMode.CALCULATION_CHAINS -> "ચેઈન પ્રવાહ"
                 CalculatorMode.AI_COPILOT -> "એઆઈ ગણિત સહાયક"
+                CalculatorMode.WORKSHEET_TAPE -> "વર્કશીટ અને પેપર ટેપ"
             }
             AppLanguage.FRENCH -> when (mode) {
                 CalculatorMode.STANDARD -> "Standard"
@@ -86,6 +90,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "Créer Calculatrice"
                 CalculatorMode.CALCULATION_CHAINS -> "Chaînes de Calcul"
                 CalculatorMode.AI_COPILOT -> "Copilote IA"
+                CalculatorMode.WORKSHEET_TAPE -> "Feuille & Ruban Papier"
             }
             AppLanguage.GERMAN -> when (mode) {
                 CalculatorMode.STANDARD -> "Standard"
@@ -102,6 +107,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "Rechner Baukasten"
                 CalculatorMode.CALCULATION_CHAINS -> "Kettenrechnung"
                 CalculatorMode.AI_COPILOT -> "KI Mathe-Copilot"
+                CalculatorMode.WORKSHEET_TAPE -> "Arbeitsblatt & Streifen"
             }
             AppLanguage.JAPANESE -> when (mode) {
                 CalculatorMode.STANDARD -> "標準電卓"
@@ -118,6 +124,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "AI電卓作成"
                 CalculatorMode.CALCULATION_CHAINS -> "連動フロー計算"
                 CalculatorMode.AI_COPILOT -> "AI数学コパイロット"
+                CalculatorMode.WORKSHEET_TAPE -> "ワークシート・計算テープ"
             }
             AppLanguage.CHINESE -> when (mode) {
                 CalculatorMode.STANDARD -> "标准计算"
@@ -134,6 +141,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "AI定制计算器"
                 CalculatorMode.CALCULATION_CHAINS -> "级联链式计算"
                 CalculatorMode.AI_COPILOT -> "AI数学副驾"
+                CalculatorMode.WORKSHEET_TAPE -> "工作表与纸带计算"
             }
             AppLanguage.ARABIC -> when (mode) {
                 CalculatorMode.STANDARD -> "قياسي"
@@ -150,6 +158,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "صانع الحاسبات الذكي"
                 CalculatorMode.CALCULATION_CHAINS -> "سلاسل الحسابات"
                 CalculatorMode.AI_COPILOT -> "مساعد الذكاء الاصطناعي"
+                CalculatorMode.WORKSHEET_TAPE -> "ورقة العمل والشريط الورقي"
             }
             AppLanguage.PORTUGUESE -> when (mode) {
                 CalculatorMode.STANDARD -> "Padrão"
@@ -166,6 +175,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "Criador IA"
                 CalculatorMode.CALCULATION_CHAINS -> "Cadeias de Cálculo"
                 CalculatorMode.AI_COPILOT -> "Copiloto IA"
+                CalculatorMode.WORKSHEET_TAPE -> "Planilha & Fita de Papel"
             }
             AppLanguage.RUSSIAN -> when (mode) {
                 CalculatorMode.STANDARD -> "Стандартный"
@@ -182,6 +192,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "Конструктор калькуляторов"
                 CalculatorMode.CALCULATION_CHAINS -> "Каскадные вычисления"
                 CalculatorMode.AI_COPILOT -> "ИИ Копилот"
+                CalculatorMode.WORKSHEET_TAPE -> "Таблица и бумажная лента"
             }
             AppLanguage.ITALIAN -> when (mode) {
                 CalculatorMode.STANDARD -> "Standard"
@@ -198,6 +209,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "Crea Calcolatrice"
                 CalculatorMode.CALCULATION_CHAINS -> "Catene di Calcolo"
                 CalculatorMode.AI_COPILOT -> "Copilota IA"
+                CalculatorMode.WORKSHEET_TAPE -> "Foglio & Nastro di Carta"
             }
             AppLanguage.INDONESIAN -> when (mode) {
                 CalculatorMode.STANDARD -> "Standar"
@@ -214,6 +226,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "Pembuat Kalkulator"
                 CalculatorMode.CALCULATION_CHAINS -> "Rantai Perhitungan"
                 CalculatorMode.AI_COPILOT -> "Kopilot AI"
+                CalculatorMode.WORKSHEET_TAPE -> "Lembar Kerja & Pita Kertas"
             }
             AppLanguage.KOREAN -> when (mode) {
                 CalculatorMode.STANDARD -> "표준 계산기"
@@ -230,6 +243,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "AI 맞춤 계산기 생성"
                 CalculatorMode.CALCULATION_CHAINS -> "연쇄 반응 계산 흐름"
                 CalculatorMode.AI_COPILOT -> "AI 수학 코파일럿"
+                CalculatorMode.WORKSHEET_TAPE -> "워크시트 / 계산 테이프"
             }
             AppLanguage.TURKISH -> when (mode) {
                 CalculatorMode.STANDARD -> "Standart"
@@ -246,6 +260,7 @@ object LanguageStrings {
                 CalculatorMode.CUSTOM_BUILDER -> "Hesap Makinesi Oluştur"
                 CalculatorMode.CALCULATION_CHAINS -> "Zincir Hesaplama"
                 CalculatorMode.AI_COPILOT -> "Yapay Zeka Yardımcısı"
+                CalculatorMode.WORKSHEET_TAPE -> "Çalışma Sayfası & Hesap Şeridi"
             }
         }
     }

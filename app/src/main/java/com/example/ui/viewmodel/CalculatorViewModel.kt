@@ -44,6 +44,11 @@ import com.example.domain.CustomCalculatorEngine
 import com.example.domain.TaxPreset
 import com.example.model.CalculationChain
 import com.example.model.CustomCalculator
+import com.example.model.WorksheetDocument
+import com.example.model.WorksheetLine
+import com.example.model.WorksheetTemplate
+import com.example.domain.WorksheetTapeEngine
+import com.example.data.local.WorksheetRepository
 import com.example.ui.theme.CalculatorThemes
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -66,7 +71,7 @@ import kotlin.random.Random
 
 data class CalculatorUiState(
     val mode: CalculatorMode = CalculatorMode.STANDARD,
-    val currentThemeId: ThemeId = ThemeId.BATMAN_DARK_KNIGHT,
+    val currentThemeId: ThemeId = ThemeId.RETRO_CIRCUIT_RED,
     val customAccentColor: Long? = null,
     val customShapeType: ButtonShapeType? = null,
     val customDisplayFont: DisplayFontType? = null,
@@ -171,13 +176,22 @@ data class CalculatorUiState(
 
     // Calculation Chains State
     val calculationChains: List<CalculationChain> = CalculationChainEngine.BUILTIN_CHAINS,
-    val activeCalculationChain: CalculationChain = CalculationChainEngine.BUILTIN_CHAINS[0]
+    val activeCalculationChain: CalculationChain = CalculationChainEngine.BUILTIN_CHAINS[0],
+
+    // Worksheet & Paper Tape Calculator State
+    val worksheetDocuments: List<WorksheetDocument> = emptyList(),
+    val activeWorksheetDocument: WorksheetDocument = WorksheetDocument(
+        title = "Candle Cost Calculation",
+        lines = WorksheetTapeEngine.getDefaultTemplates()[0].lines,
+        grandTotal = 446.25
+    )
 )
 
 class CalculatorViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: HistoryRepository
     private val ageProfileDao = AppDatabase.getDatabase(application).ageProfileDao()
+    private val worksheetRepository = WorksheetRepository(AppDatabase.getDatabase(application).worksheetDao())
     val soundHapticHelper: SoundHapticHelper = SoundHapticHelper(application)
     private val prefs: SharedPreferences = application.getSharedPreferences("chromacalc_prefs", Context.MODE_PRIVATE)
 
@@ -197,10 +211,10 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             try {
                 ThemeId.valueOf(savedThemeName)
             } catch (e: Exception) {
-                ThemeId.BATMAN_DARK_KNIGHT
+                ThemeId.RETRO_CIRCUIT_RED
             }
         } else {
-            ThemeId.BATMAN_DARK_KNIGHT
+            ThemeId.RETRO_CIRCUIT_RED
         }
         val savedSound = prefs.getBoolean("saved_sound_enabled", true)
         val savedHaptics = prefs.getBoolean("saved_haptics_enabled", true)
@@ -212,7 +226,7 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
         // Saved Display Preferences
         val savedSepName = prefs.getString("display_separator", null)
-        val savedSep = savedSepName?.let { try { DisplaySeparatorStyle.valueOf(it) } catch (e: Exception) { null } } ?: DisplaySeparatorStyle.COMMA
+        val savedSep = savedSepName?.let { try { DisplaySeparatorStyle.valueOf(it) } catch (e: Exception) { null } } ?: DisplaySeparatorStyle.INDIAN
         val savedPrecName = prefs.getString("display_precision", null)
         val savedPrec = savedPrecName?.let { try { DisplayPrecisionMode.valueOf(it) } catch (e: Exception) { null } } ?: DisplayPrecisionMode.AUTO
         val savedScaleName = prefs.getString("display_scale", null)
@@ -299,6 +313,24 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
         // Initialize Live Forex Rates via real network
         fetchLiveCurrencyRates()
+
+        // Initialize Worksheets & Paper Tape
+        viewModelScope.launch {
+            worksheetRepository.getAllWorksheets().collect { docs ->
+                if (docs.isEmpty()) {
+                    worksheetRepository.populateInitialDataIfEmpty(0)
+                } else {
+                    _uiState.update { state ->
+                        val currentActive = state.activeWorksheetDocument
+                        val matched = docs.find { it.id == currentActive.id } ?: docs.first()
+                        state.copy(
+                            worksheetDocuments = docs,
+                            activeWorksheetDocument = matched
+                        )
+                    }
+                }
+            }
+        }
     }
 
     val currentTheme: ThemePalette
@@ -439,6 +471,9 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             ButtonShapeType.SQUIRCLE -> 16.dp
             ButtonShapeType.ROUNDED_SQUARE -> 8.dp
             ButtonShapeType.BRUTALIST_RECT -> 4.dp
+            ButtonShapeType.PIXEL_BLOCK -> 3.dp
+            ButtonShapeType.GLOSSY_JELLY -> 16.dp
+            ButtonShapeType.NEKO_EARS -> 18.dp
             null -> base.cornerRadiusDp
         }
         val contrastText = if (customAccent != null) {
@@ -537,7 +572,40 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             .remove("display_copy_tap")
             .apply()
         _uiState.update {
-            it.copy(displayConfig = DisplayConfig())
+            it.copy(displayConfig = DisplayConfig(separatorStyle = DisplaySeparatorStyle.INDIAN))
+        }
+    }
+
+    fun resetAllSettingsToDefaults() {
+        prefs.edit()
+            .remove("saved_theme_id")
+            .remove("custom_accent_color")
+            .remove("custom_shape_type")
+            .remove("custom_display_font")
+            .remove("display_separator")
+            .remove("display_precision")
+            .remove("display_scale")
+            .remove("display_notation")
+            .remove("display_live_preview")
+            .remove("display_badges")
+            .remove("display_scanlines")
+            .remove("display_copy_tap")
+            .remove("saved_sound_enabled")
+            .remove("saved_haptics_enabled")
+            .remove("app_language")
+            .apply()
+
+        _uiState.update {
+            it.copy(
+                currentThemeId = ThemeId.RETRO_CIRCUIT_RED,
+                customAccentColor = null,
+                customShapeType = null,
+                customDisplayFont = null,
+                displayConfig = DisplayConfig(separatorStyle = DisplaySeparatorStyle.INDIAN),
+                isSoundEnabled = true,
+                isHapticsEnabled = true,
+                currentLanguage = AppLanguage.ENGLISH
+            )
         }
     }
 
@@ -576,7 +644,8 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
 
             if (wasEvaluated) {
                 if ("+−×÷^%".contains(char)) {
-                    newExpr = if (newResult != "Error") newResult + char else char
+                    val rawResult = if (newResult != "Error") newResult.replace(",", "").replace(" ", "") else ""
+                    newExpr = if (rawResult.isNotEmpty()) rawResult + char else char
                 } else {
                     newExpr = char
                 }
@@ -587,8 +656,15 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                     newCursorPos = 2
                 } else {
                     val pos = newCursorPos.coerceIn(0, newExpr.length)
-                    newExpr = newExpr.substring(0, pos) + char + newExpr.substring(pos)
-                    newCursorPos = pos + char.length
+                    if (pos > 0 && "+−×÷^".contains(newExpr[pos - 1]) && "+×÷^".contains(char)) {
+                        newExpr = newExpr.substring(0, pos - 1) + char + newExpr.substring(pos)
+                        newCursorPos = pos
+                    } else if (pos > 0 && newExpr[pos - 1] == '−' && char == "−") {
+                        // Do not repeat minus
+                    } else {
+                        newExpr = newExpr.substring(0, pos) + char + newExpr.substring(pos)
+                        newCursorPos = pos + char.length
+                    }
                 }
             }
 
@@ -611,7 +687,8 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
             var newCursorPos = state.cursorPosition.coerceIn(0, state.expression.length)
             val insertion = "$func("
             if (state.lastEvaluated) {
-                newExpr = if (state.result != "Error") "$func(${state.result})" else insertion
+                val rawResult = if (state.result != "Error") state.result.replace(",", "").replace(" ", "") else ""
+                newExpr = if (rawResult.isNotEmpty()) "$func($rawResult)" else insertion
                 newCursorPos = newExpr.length
             } else {
                 val pos = newCursorPos.coerceIn(0, newExpr.length)
@@ -653,15 +730,20 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
         soundHapticHelper.triggerHaptic(haptics, _uiState.value.isHapticsEnabled)
 
         _uiState.update { state ->
-            val expr = state.expression
-            val newExpr = if (expr.startsWith("-(")) {
-                expr.removePrefix("-(").removeSuffix(")")
-            } else if (expr.startsWith("-")) {
-                expr.removePrefix("-")
-            } else if (expr.isNotEmpty()) {
-                "-($expr)"
+            val newExpr = if (state.lastEvaluated && state.result != "Error" && state.result.isNotBlank()) {
+                val clean = state.result.replace(",", "").replace(" ", "")
+                if (clean.startsWith("-")) clean.removePrefix("-") else "-$clean"
             } else {
-                "-"
+                val expr = state.expression
+                if (expr.startsWith("-(")) {
+                    expr.removePrefix("-(").removeSuffix(")")
+                } else if (expr.startsWith("-")) {
+                    expr.removePrefix("-")
+                } else if (expr.isNotEmpty()) {
+                    "-($expr)"
+                } else {
+                    "-"
+                }
             }
             val preview = CalculatorEngine.evaluatePreview(newExpr, state.angleMode)
             state.copy(
@@ -1531,6 +1613,56 @@ class CalculatorViewModel(application: Application) : AndroidViewModel(applicati
                 result = "0",
                 mode = CalculatorMode.STANDARD
             )
+        }
+    }
+
+    fun saveWorksheetDocument(doc: WorksheetDocument) {
+        viewModelScope.launch {
+            worksheetRepository.saveWorksheet(doc)
+            _uiState.update { it.copy(activeWorksheetDocument = doc) }
+        }
+    }
+
+    fun selectWorksheetDocument(doc: WorksheetDocument) {
+        _uiState.update { it.copy(activeWorksheetDocument = doc) }
+    }
+
+    fun deleteWorksheetDocument(id: String) {
+        viewModelScope.launch {
+            worksheetRepository.deleteWorksheet(id)
+        }
+    }
+
+    fun createNewWorksheetDocument() {
+        viewModelScope.launch {
+            val count = _uiState.value.worksheetDocuments.size + 1
+            val newDoc = WorksheetDocument(
+                title = "Worksheet $count",
+                lines = listOf(
+                    WorksheetLine(
+                        operator = "+",
+                        rawValue = "0",
+                        note = "Initial entry"
+                    )
+                ),
+                grandTotal = 0.0
+            )
+            worksheetRepository.saveWorksheet(newDoc)
+            _uiState.update { it.copy(activeWorksheetDocument = newDoc) }
+        }
+    }
+
+    fun applyWorksheetTemplate(template: WorksheetTemplate) {
+        viewModelScope.launch {
+            val lines = WorksheetTapeEngine.recalculate(template.lines)
+            val grandTotal = lines.lastOrNull()?.runningTotal ?: 0.0
+            val newDoc = WorksheetDocument(
+                title = template.title,
+                lines = lines,
+                grandTotal = grandTotal
+            )
+            worksheetRepository.saveWorksheet(newDoc)
+            _uiState.update { it.copy(activeWorksheetDocument = newDoc) }
         }
     }
 

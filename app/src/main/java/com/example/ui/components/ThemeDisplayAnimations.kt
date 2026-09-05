@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import com.example.model.ThemeId
 import com.example.model.ThemePalette
 import kotlin.math.sin
 
@@ -79,6 +80,355 @@ fun ThemeAmbientDisplayAnimation(
         val sweepProgressVal = sweepProgress.value
 
         when {
+            // 0A. KAWAII GIRL MATH: Sweet Kitten Peek, Floating Pastel Hearts & Twinkling Sparkles
+            theme.isGirlMath || theme.id == ThemeId.GIRL_MATH_PASTEL -> {
+                // 5 elegant floating pastel hearts drifting upwards on organic sine-wave paths
+                val heartColors = listOf(
+                    Color(0xFFFF8FA3),
+                    Color(0xFFFFB5C5),
+                    Color(0xFFBAA6FF),
+                    Color(0xFFFFC6D5),
+                    Color(0xFFA8E6CF)
+                )
+                for (i in 0 until 5) {
+                    val offsetFraction = (i * 0.22f)
+                    val progress = (sweepProgressVal + offsetFraction) % 1f
+                    val heartY = h * (1f - progress)
+                    val heartX = (w * (0.12f + i * 0.19f)) + sin(progress * 10f + i) * 14.dp.toPx()
+                    val heartAlpha = (sin(progress * Math.PI.toFloat()) * 0.45f).coerceIn(0f, 0.45f)
+                    val heartScale = (5.5.dp.toPx() + (i % 3) * 2.dp.toPx())
+
+                    val heartPath = Path().apply {
+                        moveTo(heartX, heartY)
+                        cubicTo(
+                            heartX - heartScale, heartY - heartScale,
+                            heartX - heartScale * 1.5f, heartY + heartScale * 0.4f,
+                            heartX, heartY + heartScale * 1.2f
+                        )
+                        cubicTo(
+                            heartX + heartScale * 1.5f, heartY + heartScale * 0.4f,
+                            heartX + heartScale, heartY - heartScale,
+                            heartX, heartY
+                        )
+                        close()
+                    }
+                    drawPath(heartPath, color = heartColors[i].copy(alpha = heartAlpha))
+                }
+
+                // Adorable fluffy white kitten peeking over the top display frame
+                val kittenX = 26.dp.toPx()
+                val kittenY = 3.dp.toPx() + sin(breathPulseVal * 3f) * 1.2.dp.toPx()
+                val headR = 10.dp.toPx()
+
+                // Head
+                drawCircle(
+                    color = Color.White,
+                    radius = headR,
+                    center = Offset(kittenX, kittenY + headR * 0.4f)
+                )
+                // Left Ear
+                val earLeft = Path().apply {
+                    moveTo(kittenX - headR * 0.8f, kittenY + headR * 0.2f)
+                    lineTo(kittenX - headR * 0.65f, kittenY - headR * 0.65f)
+                    lineTo(kittenX - headR * 0.15f, kittenY)
+                    close()
+                }
+                drawPath(earLeft, color = Color.White)
+                val earLeftInner = Path().apply {
+                    moveTo(kittenX - headR * 0.70f, kittenY + headR * 0.15f)
+                    lineTo(kittenX - headR * 0.60f, kittenY - headR * 0.45f)
+                    lineTo(kittenX - headR * 0.25f, kittenY)
+                    close()
+                }
+                drawPath(earLeftInner, color = Color(0xFFFF9EAA))
+
+                // Right Ear
+                val earRight = Path().apply {
+                    moveTo(kittenX + headR * 0.15f, kittenY)
+                    lineTo(kittenX + headR * 0.65f, kittenY - headR * 0.65f)
+                    lineTo(kittenX + headR * 0.8f, kittenY + headR * 0.2f)
+                    close()
+                }
+                drawPath(earRight, color = Color.White)
+                val earRightInner = Path().apply {
+                    moveTo(kittenX + headR * 0.25f, kittenY)
+                    lineTo(kittenX + headR * 0.60f, kittenY - headR * 0.45f)
+                    lineTo(kittenX + headR * 0.70f, kittenY + headR * 0.15f)
+                    close()
+                }
+                drawPath(earRightInner, color = Color(0xFFFF9EAA))
+
+                // Cute pink bow by left ear
+                drawCircle(color = Color(0xFFFF5277), radius = 2.2.dp.toPx(), center = Offset(kittenX - headR * 0.45f, kittenY - headR * 0.2f))
+                drawCircle(color = Color(0xFFFF7597), radius = 1.8.dp.toPx(), center = Offset(kittenX - headR * 0.65f, kittenY - headR * 0.25f))
+                drawCircle(color = Color(0xFFFF7597), radius = 1.8.dp.toPx(), center = Offset(kittenX - headR * 0.25f, kittenY - headR * 0.15f))
+
+                // Happy closed eyes (^ . ^)
+                drawArc(
+                    color = Color(0xFF5A3840),
+                    startAngle = 180f,
+                    sweepAngle = 180f,
+                    useCenter = false,
+                    topLeft = Offset(kittenX - headR * 0.55f, kittenY + headR * 0.15f),
+                    size = Size(3.dp.toPx(), 2.2.dp.toPx()),
+                    style = Stroke(width = 1.2.dp.toPx(), cap = StrokeCap.Round)
+                )
+                drawArc(
+                    color = Color(0xFF5A3840),
+                    startAngle = 180f,
+                    sweepAngle = 180f,
+                    useCenter = false,
+                    topLeft = Offset(kittenX + headR * 0.15f, kittenY + headR * 0.15f),
+                    size = Size(3.dp.toPx(), 2.2.dp.toPx()),
+                    style = Stroke(width = 1.2.dp.toPx(), cap = StrokeCap.Round)
+                )
+
+                // Blushing cheeks with gentle warm pulse
+                val cheekAlpha = (0.50f + 0.35f * breathPulseVal).coerceIn(0f, 0.95f)
+                drawCircle(
+                    color = Color(0xFFFF85A1).copy(alpha = cheekAlpha),
+                    radius = 2.2.dp.toPx(),
+                    center = Offset(kittenX - headR * 0.60f, kittenY + headR * 0.45f)
+                )
+                drawCircle(
+                    color = Color(0xFFFF85A1).copy(alpha = cheekAlpha),
+                    radius = 2.2.dp.toPx(),
+                    center = Offset(kittenX + headR * 0.60f, kittenY + headR * 0.45f)
+                )
+
+                // Ambient bottom pastel glow
+                val pinkGlowBrush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color(0xFFFF9EAA).copy(alpha = 0.20f * breathPulseVal),
+                        Color(0xFFFFD1DC).copy(alpha = 0.45f * breathPulseVal),
+                        Color(0xFFFF9EAA).copy(alpha = 0.20f * breathPulseVal),
+                        Color.Transparent
+                    )
+                )
+                drawLine(
+                    brush = pinkGlowBrush,
+                    start = Offset(w * 0.12f, h - 2.dp.toPx()),
+                    end = Offset(w * 0.88f, h - 2.dp.toPx()),
+                    strokeWidth = 2.dp.toPx(),
+                    cap = StrokeCap.Round
+                )
+            }
+
+            // 0B. NEKO MOCHI CAT-CULATOR: Rhythmic Purring Wave & Floating Translucent Pawprints
+            theme.isNekoMochi || theme.id == ThemeId.NEKO_MOCHI_CAT -> {
+                // Floating cute translucent pawprints rising smoothly
+                for (i in 0 until 4) {
+                    val offsetFraction = (i * 0.28f)
+                    val progress = (sweepProgressVal + offsetFraction) % 1f
+                    val pawY = h * (1f - progress)
+                    val pawX = (w * (0.15f + i * 0.24f)) + sin(progress * 8f + i) * 10.dp.toPx()
+                    val pawAlpha = (sin(progress * Math.PI.toFloat()) * 0.35f).coerceIn(0f, 0.35f)
+                    val mainPadR = 3.5.dp.toPx()
+                    val toeR = 1.6.dp.toPx()
+                    val pawColor = Color(0xFFFFB5C5).copy(alpha = pawAlpha)
+
+                    // Main palm pad
+                    drawOval(
+                        color = pawColor,
+                        topLeft = Offset(pawX - mainPadR, pawY - mainPadR * 0.8f),
+                        size = Size(mainPadR * 2f, mainPadR * 1.6f)
+                    )
+                    // 4 Cute toes
+                    drawCircle(color = pawColor, radius = toeR, center = Offset(pawX - mainPadR * 0.75f, pawY - mainPadR * 1.25f))
+                    drawCircle(color = pawColor, radius = toeR, center = Offset(pawX - mainPadR * 0.25f, pawY - mainPadR * 1.55f))
+                    drawCircle(color = pawColor, radius = toeR, center = Offset(pawX + mainPadR * 0.25f, pawY - mainPadR * 1.55f))
+                    drawCircle(color = pawColor, radius = toeR, center = Offset(pawX + mainPadR * 0.75f, pawY - mainPadR * 1.25f))
+                }
+
+                // Cozy soothing purr breathing wave along bottom
+                val purrBrush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color(0xFFFF85A1).copy(alpha = 0.22f * breathPulseVal),
+                        Color(0xFFFFB5C5).copy(alpha = 0.48f * breathPulseVal),
+                        Color(0xFFFF85A1).copy(alpha = 0.22f * breathPulseVal),
+                        Color.Transparent
+                    )
+                )
+                drawLine(
+                    brush = purrBrush,
+                    start = Offset(w * 0.10f, h - 2.dp.toPx()),
+                    end = Offset(w * 0.90f, h - 2.dp.toPx()),
+                    strokeWidth = 2.dp.toPx(),
+                    cap = StrokeCap.Round
+                )
+            }
+
+            // 0C. Y2K GLOSSY POP: Specular Sheen Sweep & Radiant 4-Point Stars
+            theme.isY2kGlossy || theme.id == ThemeId.Y2K_GLOSSY_POP -> {
+                // Diagonal specular sheen sweep that smoothly glides across the display
+                val sheenX = (sweepProgressVal * (w + 160.dp.toPx())) - 80.dp.toPx()
+                val sheenBrush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        Color.White.copy(alpha = 0.04f),
+                        Color.White.copy(alpha = 0.22f),
+                        Color.White.copy(alpha = 0.04f),
+                        Color.Transparent
+                    ),
+                    start = Offset(sheenX - 35.dp.toPx(), 0f),
+                    end = Offset(sheenX + 35.dp.toPx(), h)
+                )
+                drawRect(brush = sheenBrush)
+
+                // 4-pointed radiant Y2K chrome stars
+                fun drawY2kStar(cx: Float, cy: Float, sizePx: Float, alpha: Float) {
+                    val p = Path().apply {
+                        moveTo(cx, cy - sizePx)
+                        cubicTo(cx, cy - sizePx * 0.2f, cx + sizePx * 0.2f, cy, cx + sizePx, cy)
+                        cubicTo(cx + sizePx * 0.2f, cy, cx, cy + sizePx * 0.2f, cx, cy + sizePx)
+                        cubicTo(cx, cy + sizePx * 0.2f, cx - sizePx * 0.2f, cy, cx - sizePx, cy)
+                        cubicTo(cx - sizePx * 0.2f, cy, cx, cy - sizePx * 0.2f, cx, cy - sizePx)
+                        close()
+                    }
+                    drawPath(p, color = Color(0xFFFF69A6).copy(alpha = alpha * 0.75f))
+                    drawCircle(color = Color.White.copy(alpha = alpha), radius = sizePx * 0.25f, center = Offset(cx, cy))
+                }
+                drawY2kStar(22.dp.toPx(), 16.dp.toPx(), 7.dp.toPx(), breathPulseVal)
+                drawY2kStar(w - 22.dp.toPx(), h - 16.dp.toPx(), 6.dp.toPx(), 1.35f - breathPulseVal)
+            }
+
+            // 0D. PICO KAWAII PIXEL: 8-Bit Pixel Hearts, Phosphor Scanline & Pixel Sparkles
+            theme.isPixelArt || theme.id == ThemeId.PICO_KAWAII_PIXEL -> {
+                // Authentic 8-bit phosphor scanlines
+                val scanY = sweepProgressVal * h
+                drawLine(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color(0xFF00FF66).copy(alpha = 0.32f),
+                            Color.Transparent
+                        )
+                    ),
+                    start = Offset(0f, scanY),
+                    end = Offset(w, scanY),
+                    strokeWidth = 1.8.dp.toPx()
+                )
+
+                // Drifting 8-bit pixel hearts
+                for (i in 0 until 4) {
+                    val progress = (sweepProgressVal + i * 0.25f) % 1f
+                    val py = h * (1f - progress)
+                    val px = (w * (0.16f + i * 0.23f))
+                    val pAlpha = (sin(progress * Math.PI.toFloat()) * 0.50f).coerceIn(0f, 0.50f)
+                    val s = 2.2.dp.toPx()
+                    val pColor = Color(0xFFFF528E).copy(alpha = pAlpha)
+
+                    // Stepped pixel heart grid
+                    drawRect(pColor, Offset(px - 2 * s, py - 2 * s), Size(s, s))
+                    drawRect(pColor, Offset(px - s, py - 2 * s), Size(s, s))
+                    drawRect(pColor, Offset(px + s, py - 2 * s), Size(s, s))
+                    drawRect(pColor, Offset(px + 2 * s, py - 2 * s), Size(s, s))
+                    drawRect(pColor, Offset(px - 3 * s, py - s), Size(7 * s, s))
+                    drawRect(pColor, Offset(px - 3 * s, py), Size(7 * s, s))
+                    drawRect(pColor, Offset(px - 2 * s, py + s), Size(5 * s, s))
+                    drawRect(pColor, Offset(px - s, py + 2 * s), Size(3 * s, s))
+                    drawRect(pColor, Offset(px, py + 3 * s), Size(s, s))
+                }
+            }
+
+            // 0E. RETRO CIRCUIT 90034: Flowing Logic Pulses & Oscilloscope Trace
+            theme.isRetroCircuit || theme.id == ThemeId.RETRO_CIRCUIT_RED -> {
+                val oscPath = Path()
+                val startX = w * 0.08f
+                val endX = w * 0.92f
+                val waveY = h - 6.dp.toPx()
+                val pulseH = 4.dp.toPx()
+
+                var px = startX
+                oscPath.moveTo(px, waveY)
+                while (px < endX) {
+                    val phase = ((px / w) * 8f - sweepProgressVal * 4f)
+                    val isHigh = (sin(phase) > 0.3f)
+                    val py = if (isHigh) waveY - pulseH else waveY
+                    oscPath.lineTo(px, py)
+                    px += 6.dp.toPx()
+                }
+                drawPath(
+                    path = oscPath,
+                    color = theme.accentColor.copy(alpha = 0.35f + breathPulseVal * 0.35f),
+                    style = Stroke(width = 1.2.dp.toPx(), cap = StrokeCap.Square)
+                )
+
+                val blipX = startX + (endX - startX) * sweepProgressVal
+                drawCircle(
+                    color = theme.secondaryAccent,
+                    radius = 2.dp.toPx(),
+                    center = Offset(blipX, waveY - pulseH * 0.5f)
+                )
+            }
+
+            // 0F. NOTHING DOSSIER MONO: Linear Dot Array & Sweeping LED Scanning Wave
+            theme.isNothingDossier || theme.id == ThemeId.NOTHING_DOSSIER -> {
+                val dotY = h - 5.dp.toPx()
+                val dotCount = 18
+                val startX = w * 0.15f
+                val stepX = (w * 0.70f) / (dotCount - 1)
+                for (i in 0 until dotCount) {
+                    val dotX = startX + i * stepX
+                    val normalizedPos = i.toFloat() / dotCount
+                    val proximity = (1f - kotlin.math.abs(normalizedPos - sweepProgressVal) * 5f).coerceIn(0f, 1f)
+                    val alpha = 0.15f + proximity * 0.75f
+                    val radius = 1.2.dp.toPx() + proximity * 0.8.dp.toPx()
+                    drawCircle(
+                        color = Color.White.copy(alpha = alpha),
+                        radius = radius,
+                        center = Offset(dotX, dotY)
+                    )
+                }
+                drawCircle(
+                    color = Color(0xFFE52E25).copy(alpha = 0.5f + breathPulseVal * 0.5f),
+                    radius = 2.dp.toPx(),
+                    center = Offset(w - 14.dp.toPx(), 10.dp.toPx())
+                )
+            }
+
+            // 0G. SWISS BAUHAUS DOSSIER: Geometric Vernier Scale & Precision Ticks
+            theme.isBauhausDossier || theme.id == ThemeId.BAUHAUS_DOSSIER -> {
+                val tickY = h - 3.dp.toPx()
+                val tickCount = 24
+                val startX = w * 0.08f
+                val stepX = (w * 0.84f) / (tickCount - 1)
+                for (i in 0 until tickCount) {
+                    val tx = startX + i * stepX
+                    val isMajor = (i % 4 == 0)
+                    val tickH = if (isMajor) 5.dp.toPx() else 2.5.dp.toPx()
+                    val tickColor = if (isMajor) theme.accentColor else theme.secondaryAccent
+                    drawLine(
+                        color = tickColor.copy(alpha = 0.35f + breathPulseVal * 0.25f),
+                        start = Offset(tx, tickY),
+                        end = Offset(tx, tickY - tickH),
+                        strokeWidth = 1.2.dp.toPx()
+                    )
+                }
+            }
+
+            // 0H. TERRACOTTA STUDIO: Specular Glass Reflection Gleam & OLED Micro-LED Matrix
+            theme.isTerracottaStudio || theme.id == ThemeId.TERRACOTTA_STUDIO -> {
+                val gleamX = sweepProgressVal * (w * 1.5f) - (w * 0.25f)
+                drawLine(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color.Transparent, Color(0x22FFFFFF), Color.Transparent),
+                        startX = gleamX - 30.dp.toPx(),
+                        endX = gleamX + 30.dp.toPx()
+                    ),
+                    start = Offset(gleamX - 20.dp.toPx(), 0f),
+                    end = Offset(gleamX + 20.dp.toPx(), h),
+                    strokeWidth = 24.dp.toPx()
+                )
+                drawCircle(
+                    color = Color.White.copy(alpha = 0.3f + breathPulseVal * 0.4f),
+                    radius = 1.5.dp.toPx(),
+                    center = Offset(w * 0.5f, h - 4.dp.toPx())
+                )
+            }
+
             // 1. NEUMORPHIC CATEGORY: Soft Specular Breathing Refraction & Liquid Light Edge
             theme.category.contains("Neumorphic", ignoreCase = true) -> {
                 // Soft glowing liquid light rim along the bottom display edge

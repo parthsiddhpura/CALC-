@@ -5,12 +5,15 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -25,9 +28,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -64,22 +72,33 @@ fun CalculatorButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
 
+    // Resolve per-key palette overrides (used for Girl Math pastel & colorful layouts)
+    val resolvedBgColor = theme.customKeyColors?.get(text) ?: backgroundColor
+    val resolvedTextColor = theme.customKeyTextColors?.get(text) ?: textColor
+
     // Ultra-crisp, zero-latency physical tactile spring
     val scale by animateFloatAsState(
         targetValue = when {
+            isPressed && theme.pressAnimation == PressAnimationType.JELLY_SQUISH -> 0.86f
             isPressed && theme.pressAnimation == PressAnimationType.BOUNCE -> 0.88f
+            isPressed && theme.pressAnimation == PressAnimationType.PIXEL_STEP -> 0.96f
             isPressed -> 0.92f
             else -> 1.0f
         },
         animationSpec = spring(
-            dampingRatio = 0.72f,
-            stiffness = 1600f
+            dampingRatio = if (theme.pressAnimation == PressAnimationType.JELLY_SQUISH) 0.58f else 0.72f,
+            stiffness = if (theme.pressAnimation == PressAnimationType.JELLY_SQUISH) 1200f else 1600f
         ),
         label = "btn_scale"
     )
 
-    // Only compute specialized offsets if theme explicitly requires them
-    val sinkOffsetY = if (isPressed && theme.pressAnimation == PressAnimationType.DEEP_SINK) 3.5f else 0f
+    // Specialized offsets based on animation modes
+    val sinkOffsetY = when {
+        isPressed && theme.pressAnimation == PressAnimationType.DEEP_SINK -> 3.5f
+        isPressed && (theme.pressAnimation == PressAnimationType.PIXEL_STEP || theme.isPixelArt) -> 2.5f
+        else -> 0f
+    }
+    val pixelOffsetX = if (isPressed && (theme.pressAnimation == PressAnimationType.PIXEL_STEP || theme.isPixelArt)) 2.5f else 0f
     val brutalDiff = if (theme.isBrutalistShadow && isPressed) 3.5f else 0f
 
     val currentBgColor = if (isPressed) {
@@ -87,18 +106,13 @@ fun CalculatorButton(
             theme.hasBatSignal -> Color(0xFF283344)
             theme.hasArcReactor -> Color(0xFF1F2D42)
             theme.pressAnimation == PressAnimationType.NEON_GLOW -> theme.accentColor.copy(alpha = 0.35f)
-            else -> backgroundColor.copy(alpha = 0.84f)
+            theme.pressAnimation == PressAnimationType.JELLY_SQUISH -> resolvedBgColor.copy(alpha = 0.90f)
+            else -> resolvedBgColor.copy(alpha = 0.84f)
         }
-    } else backgroundColor
+    } else resolvedBgColor
 
     val shape: Shape = remember(theme.shapeType, theme.cornerRadiusDp) {
-        when (theme.shapeType) {
-            ButtonShapeType.PILL -> RoundedCornerShape(percent = 50)
-            ButtonShapeType.CIRCLE -> CircleShape
-            ButtonShapeType.SQUIRCLE -> RoundedCornerShape(theme.cornerRadiusDp)
-            ButtonShapeType.ROUNDED_SQUARE -> RoundedCornerShape(theme.cornerRadiusDp)
-            ButtonShapeType.BRUTALIST_RECT -> RoundedCornerShape(theme.cornerRadiusDp.coerceAtMost(8.dp))
-        }
+        theme.getShape()
     }
 
     val fontFamily = remember(theme.displayFont) {
@@ -107,6 +121,37 @@ fun CalculatorButton(
             DisplayFontType.DIGITAL_LCD -> FontFamily.Monospace
             DisplayFontType.MODERN_SANS -> FontFamily.SansSerif
             DisplayFontType.ROUNDED -> FontFamily.SansSerif
+            DisplayFontType.PIXEL_8BIT -> FontFamily.Monospace
+            DisplayFontType.KAWAII_CANDY -> FontFamily.SansSerif
+        }
+    }
+
+    // Neko Cat-Culator sweet kitten expressions per key
+    val nekoFace = remember(text, theme.isNekoMochi) {
+        if (!theme.isNekoMochi && theme.shapeType != ButtonShapeType.NEKO_EARS) null else {
+            when (text) {
+                "7" -> "(•ㅅ•)"
+                "8" -> "(^•ω•^)"
+                "9" -> "(=^･ω･^=)"
+                "4" -> "(^•ﻌ•^)"
+                "5" -> "( ˘ ³˘)"
+                "6" -> "(• ̀ω•́ )"
+                "1" -> "( > ᴗ < )"
+                "2" -> "(^._.^)ﾉ"
+                "3" -> "(=①ω①=)"
+                "0" -> "(ㅇㅅㅇ)"
+                "." -> "🐾"
+                "=" -> "(=^ ◡ ^=)"
+                "+" -> "(•‿•)"
+                "−" -> "(｡•ㅅ•｡)"
+                "×" -> "(^>ω<^)"
+                "÷" -> "(•ω•)"
+                "AC" -> "( > < )"
+                "⌫" -> "(≗ ≗)"
+                "%" -> "(✿•ㅅ•)"
+                "±" -> "(^._.^)"
+                else -> null
+            }
         }
     }
 
@@ -119,17 +164,22 @@ fun CalculatorButton(
                 if (sinkOffsetY != 0f) {
                     translationY = sinkOffsetY.dp.toPx()
                 }
+                if (pixelOffsetX != 0f) {
+                    translationX = pixelOffsetX.dp.toPx()
+                }
             }
             .testTag(testTag)
     ) {
-        // Neo-brutalist solid shadow underlay
-        if (theme.isBrutalistShadow) {
+        // Neo-brutalist or 8-Bit Pixel hard drop shadow underlay
+        if (theme.isBrutalistShadow || (theme.isPixelArt && !isPressed)) {
+            val shadowOffset = if (theme.isPixelArt) 2.5.dp else 3.5.dp
+            val shadowColor = if (theme.isPixelArt) Color(0xFF1E1024) else theme.brutalistShadowColor
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .offset(x = 3.5.dp, y = 3.5.dp)
+                    .offset(x = shadowOffset, y = shadowOffset)
                     .clip(shape)
-                    .background(theme.brutalistShadowColor)
+                    .background(shadowColor)
             )
         }
 
@@ -181,18 +231,154 @@ fun CalculatorButton(
                 ),
             contentAlignment = Alignment.Center
         ) {
+            // Chunky 8-Bit Pixel Bevel
+            if (theme.isPixelArt || theme.shapeType == ButtonShapeType.PIXEL_BLOCK) {
+                Canvas(modifier = Modifier.matchParentSize()) {
+                    val w = size.width
+                    val h = size.height
+                    val b = 2.2.dp.toPx()
+                    if (!isPressed) {
+                        // Top & Left highlight
+                        drawLine(
+                            color = Color.White.copy(alpha = 0.45f),
+                            start = Offset(0f, b / 2),
+                            end = Offset(w, b / 2),
+                            strokeWidth = b
+                        )
+                        drawLine(
+                            color = Color.White.copy(alpha = 0.35f),
+                            start = Offset(b / 2, 0f),
+                            end = Offset(b / 2, h),
+                            strokeWidth = b
+                        )
+                        // Bottom & Right shadow
+                        drawLine(
+                            color = Color.Black.copy(alpha = 0.45f),
+                            start = Offset(0f, h - b / 2),
+                            end = Offset(w, h - b / 2),
+                            strokeWidth = b
+                        )
+                        drawLine(
+                            color = Color.Black.copy(alpha = 0.35f),
+                            start = Offset(w - b / 2, 0f),
+                            end = Offset(w - b / 2, h),
+                            strokeWidth = b
+                        )
+                    }
+                }
+            }
+
+            // Y2K Juicy Jelly Specular Highlight Overlay
+            if (theme.isY2kGlossy || theme.shapeType == ButtonShapeType.GLOSSY_JELLY) {
+                Canvas(modifier = Modifier.matchParentSize()) {
+                    val w = size.width
+                    val h = size.height
+                    // Specular glossy reflection dome on upper half
+                    drawRoundRect(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.White.copy(alpha = if (isPressed) 0.35f else 0.65f),
+                                Color.White.copy(alpha = 0.15f),
+                                Color.Transparent
+                            ),
+                            startY = 0f,
+                            endY = h * 0.48f
+                        ),
+                        topLeft = Offset(w * 0.08f, 2.5.dp.toPx()),
+                        size = Size(w * 0.84f, h * 0.42f),
+                        cornerRadius = CornerRadius(8.dp.toPx(), 8.dp.toPx())
+                    )
+                }
+            }
+
+            // Kawaii Neko Cat Ears on top corners of the mochi button
+            if (theme.isNekoMochi || theme.shapeType == ButtonShapeType.NEKO_EARS) {
+                Canvas(modifier = Modifier.matchParentSize()) {
+                    val w = size.width
+                    val h = size.height
+                    val earH = h * 0.22f
+                    val strokePx = borderWidth.toPx().coerceAtLeast(1.2f)
+
+                    // Left Ear Outer
+                    val leftEarPath = Path().apply {
+                        moveTo(w * 0.10f, earH)
+                        lineTo(w * 0.20f, 1.dp.toPx())
+                        lineTo(w * 0.34f, earH * 0.90f)
+                        close()
+                    }
+                    drawPath(leftEarPath, color = currentBgColor)
+                    // Left Ear Inner Blush
+                    val leftInnerPath = Path().apply {
+                        moveTo(w * 0.15f, earH * 0.82f)
+                        lineTo(w * 0.20f, 3.dp.toPx())
+                        lineTo(w * 0.29f, earH * 0.78f)
+                        close()
+                    }
+                    drawPath(leftInnerPath, color = Color(0xFFFF85A1).copy(alpha = 0.85f))
+                    if (borderWidth > 0.dp) {
+                        drawPath(leftEarPath, color = borderColor, style = Stroke(width = strokePx))
+                    }
+
+                    // Right Ear Outer
+                    val rightEarPath = Path().apply {
+                        moveTo(w * 0.66f, earH * 0.90f)
+                        lineTo(w * 0.80f, 1.dp.toPx())
+                        lineTo(w * 0.90f, earH)
+                        close()
+                    }
+                    drawPath(rightEarPath, color = currentBgColor)
+                    // Right Ear Inner Blush
+                    val rightInnerPath = Path().apply {
+                        moveTo(w * 0.71f, earH * 0.78f)
+                        lineTo(w * 0.80f, 3.dp.toPx())
+                        lineTo(w * 0.85f, earH * 0.82f)
+                        close()
+                    }
+                    drawPath(rightInnerPath, color = Color(0xFFFF85A1).copy(alpha = 0.85f))
+                    if (borderWidth > 0.dp) {
+                        drawPath(rightEarPath, color = borderColor, style = Stroke(width = strokePx))
+                    }
+                }
+            }
+
+            // Button Icon or Text Content
             if (icon != null) {
                 icon()
             } else {
-                Text(
-                    text = text,
-                    color = textColor,
-                    fontSize = fontSize,
-                    fontWeight = fontWeight,
-                    fontFamily = fontFamily,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                )
+                if (nekoFace != null) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(horizontal = 2.dp, vertical = 1.dp)
+                    ) {
+                        Text(
+                            text = text,
+                            color = resolvedTextColor,
+                            fontSize = (fontSize.value * 0.84f).sp,
+                            fontWeight = fontWeight,
+                            fontFamily = fontFamily,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = nekoFace,
+                            color = resolvedTextColor.copy(alpha = 0.72f),
+                            fontSize = 8.5.sp,
+                            fontWeight = FontWeight.Medium,
+                            fontFamily = FontFamily.Monospace,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
+                    Text(
+                        text = text,
+                        color = resolvedTextColor,
+                        fontSize = fontSize,
+                        fontWeight = fontWeight,
+                        fontFamily = fontFamily,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                    )
+                }
             }
         }
     }

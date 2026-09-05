@@ -52,7 +52,7 @@ object GstEngine {
 
     fun evaluateAmountOrExpression(input: String): Double {
         if (input.isBlank()) return 0.0
-        val trimmed = input.trim()
+        val trimmed = input.trim().replace(",", "").replace(Regex("(?<=\\d)\\s+(?=\\d)"), "")
         val direct = trimmed.toDoubleOrNull()
         if (direct != null) return direct
 

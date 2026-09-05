@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AspectRatio
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Search
@@ -44,6 +46,7 @@ import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -58,6 +61,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +73,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
@@ -89,6 +94,10 @@ import com.example.model.DisplayScaleSize
 import com.example.model.DisplaySeparatorStyle
 import com.example.model.ThemeId
 import com.example.model.ThemePalette
+import com.example.model.onCardColor
+import com.example.model.onCardSubtextColor
+import com.example.model.onSurfaceSubtextColor
+import com.example.model.onSurfaceTextColor
 import com.example.ui.theme.CalculatorThemes
 
 data class AccentColorPreset(
@@ -152,6 +161,7 @@ fun SettingsSheet(
     isHapticsEnabled: Boolean,
     onToggleHaptics: () -> Unit,
     onResetAppearance: () -> Unit,
+    onResetAllSettings: () -> Unit,
     onDismiss: () -> Unit,
     sheetState: SheetState,
     modifier: Modifier = Modifier
@@ -161,6 +171,8 @@ fun SettingsSheet(
     var themeSearchQuery by remember { mutableStateOf("") }
     var themeFilterDarkLight by remember { mutableStateOf("All") }
     var languageSearchQuery by remember { mutableStateOf("") }
+    var showResetConfirmDialog by remember { mutableStateOf(false) }
+    var resetSuccessMessage by remember { mutableStateOf<String?>(null) }
 
     val haptics = LocalHapticFeedback.current
 
@@ -183,11 +195,29 @@ fun SettingsSheet(
         }
     }
 
+    val effectiveTheme = remember(activeTheme) {
+        val themeIsLightBg = activeTheme.surfaceColor.luminance() > 0.45f || activeTheme.backgroundColor.luminance() > 0.45f
+        if (themeIsLightBg && (activeTheme.screenTextColor.luminance() > 0.45f || activeTheme.id == ThemeId.NEKO_MOCHI_CAT)) {
+            activeTheme.copy(
+                screenTextColor = if (activeTheme.id == ThemeId.NEKO_MOCHI_CAT) Color(0xFF3B1A23) else Color(0xFF1E1E1E),
+                screenExpressionColor = if (activeTheme.id == ThemeId.NEKO_MOCHI_CAT) Color(0xFF70404C) else Color(0xFF555555)
+            )
+        } else {
+            activeTheme
+        }
+    }
+    val activeTheme = effectiveTheme
+
+    val sheetContentColor = activeTheme.onSurfaceTextColor
+    val sheetSubtextColor = activeTheme.onSurfaceSubtextColor
+    val cardTextColor = activeTheme.onCardColor
+    val cardSubtextColor = activeTheme.onCardSubtextColor
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = activeTheme.surfaceColor,
-        contentColor = activeTheme.screenTextColor,
+        contentColor = sheetContentColor,
         modifier = modifier
     ) {
         Column(
@@ -223,27 +253,167 @@ fun SettingsSheet(
                     Column {
                         Text(
                             text = LanguageStrings.settingsTitle(currentLanguage),
-                            color = activeTheme.screenTextColor,
+                            color = sheetContentColor,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "Themes, Languages, Audio & Haptics",
-                            color = activeTheme.screenExpressionColor,
+                            color = sheetSubtextColor,
                             fontSize = 12.sp
                         )
                     }
                 }
 
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.testTag("btn_close_settings")
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Close",
-                        tint = activeTheme.screenTextColor
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = activeTheme.accentColor.copy(alpha = 0.12f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, activeTheme.accentColor.copy(alpha = 0.25f)),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showResetConfirmDialog = true
+                            }
+                            .testTag("btn_reset_all_settings_header")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.RestartAlt,
+                                contentDescription = "Reset Defaults",
+                                tint = activeTheme.accentColor,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Text(
+                                text = "Reset",
+                                color = activeTheme.accentColor,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.testTag("btn_close_settings")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = sheetContentColor
+                        )
+                    }
+                }
+            }
+
+            // Reset Confirmation Dialog
+            if (showResetConfirmDialog) {
+                AlertDialog(
+                    onDismissRequest = { showResetConfirmDialog = false },
+                    title = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.RestartAlt,
+                                contentDescription = null,
+                                tint = activeTheme.accentColor
+                            )
+                            Text(
+                                text = "Reset All Settings?",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp,
+                                color = activeTheme.screenTextColor
+                            )
+                        }
+                    },
+                    text = {
+                        Text(
+                            text = "This will restore the default Retro Circuit 90034 theme, set Indian (Lakh/Crore) thousand separator, re-enable click audio and tactile haptics, restore English language, and clear all custom style overrides.",
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp,
+                            color = activeTheme.screenExpressionColor
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                onResetAllSettings()
+                                showResetConfirmDialog = false
+                                resetSuccessMessage = "All settings have been restored to defaults!"
+                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = activeTheme.accentColor,
+                                contentColor = if (activeTheme.accentColor.luminance() > 0.6f) Color(0xFF1E1E1E) else Color.White
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Reset All to Defaults", fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showResetConfirmDialog = false }) {
+                            Text("Cancel", color = sheetSubtextColor)
+                        }
+                    },
+                    containerColor = activeTheme.cardBackground,
+                    shape = RoundedCornerShape(16.dp)
+                )
+            }
+
+            AnimatedVisibility(visible = resetSuccessMessage != null) {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = Color(0xFF10B981).copy(alpha = 0.15f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.5f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = Color(0xFF10B981),
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = resetSuccessMessage ?: "",
+                                color = sheetContentColor,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        IconButton(
+                            onClick = { resetSuccessMessage = null },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Dismiss",
+                                tint = sheetSubtextColor,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -255,6 +425,11 @@ fun SettingsSheet(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
                     .background(activeTheme.cardBackground)
+                    .then(
+                        if (activeTheme.surfaceColor.luminance() > 0.45f) {
+                            Modifier.border(1.dp, activeTheme.accentColor.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+                        } else Modifier
+                    )
                     .padding(4.dp),
                 horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
@@ -281,13 +456,17 @@ fun SettingsSheet(
                             Icon(
                                 imageVector = icon,
                                 contentDescription = null,
-                                tint = if (isSelected) activeTheme.backgroundColor else activeTheme.screenExpressionColor,
+                                tint = if (isSelected) {
+                                    if (activeTheme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White
+                                } else cardSubtextColor,
                                 modifier = Modifier.size(15.dp)
                             )
                             Spacer(modifier = Modifier.width(3.dp))
                             Text(
                                 text = label,
-                                color = if (isSelected) activeTheme.backgroundColor else activeTheme.screenExpressionColor,
+                                color = if (isSelected) {
+                                    if (activeTheme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White
+                                } else cardSubtextColor,
                                 fontSize = 10.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 maxLines = 1
@@ -613,9 +792,17 @@ fun SettingsSheet(
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
+                                            val cardTitleColor = if (themeItem.cardBackground.luminance() > 0.45f) {
+                                                if (themeItem.id == ThemeId.NEKO_MOCHI_CAT || themeItem.isNekoMochi) Color(0xFF3B1A23)
+                                                else if (themeItem.isGirlMath) Color(0xFF4A202D)
+                                                else Color(0xFF1E293B)
+                                            } else {
+                                                if (themeItem.screenTextColor.luminance() > 0.35f) themeItem.screenTextColor else Color(0xFFF8FAFC)
+                                            }
+
                                             Text(
                                                 text = themeItem.name,
-                                                color = themeItem.screenTextColor,
+                                                color = cardTitleColor,
                                                 fontSize = 13.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 maxLines = 1
@@ -632,9 +819,17 @@ fun SettingsSheet(
 
                                         Spacer(modifier = Modifier.height(4.dp))
 
+                                        val cardSubtitleColor = if (themeItem.cardBackground.luminance() > 0.45f) {
+                                            if (themeItem.id == ThemeId.NEKO_MOCHI_CAT || themeItem.isNekoMochi) Color(0xFF70404C)
+                                            else if (themeItem.isGirlMath) Color(0xFF8A5563)
+                                            else Color(0xFF64748B)
+                                        } else {
+                                            if (themeItem.screenExpressionColor.luminance() > 0.3f) themeItem.screenExpressionColor else Color(0xFF94A3B8)
+                                        }
+
                                         Text(
                                             text = themeItem.subtitle,
-                                            color = themeItem.screenExpressionColor,
+                                            color = cardSubtitleColor,
                                             fontSize = 10.sp,
                                             maxLines = 1
                                         )
@@ -1568,37 +1763,203 @@ fun SettingsSheet(
                         }
                     }
                 } else if (selectedSection == "about") {
-                    // --- ABOUT & RESET ---
+                    // --- ABOUT & DEVELOPER & RESET SECTION ---
                     item {
+                        // Hero Header Card
                         Surface(
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(16.dp),
                             color = activeTheme.cardBackground,
+                            border = if (activeTheme.surfaceColor.luminance() > 0.45f) {
+                                androidx.compose.foundation.BorderStroke(1.dp, activeTheme.accentColor.copy(alpha = 0.25f))
+                            } else null,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(
-                                modifier = Modifier.padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(14.dp)
+                                modifier = Modifier.padding(18.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = "CALC +",
+                                            color = activeTheme.screenTextColor,
+                                            fontSize = 24.sp,
+                                            fontWeight = FontWeight.Black,
+                                            letterSpacing = 1.sp
+                                        )
+                                        Text(
+                                            text = "Precision Studio & Hardware Calculator",
+                                            color = activeTheme.accentColor,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = activeTheme.accentColor.copy(alpha = 0.15f),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, activeTheme.accentColor.copy(alpha = 0.4f))
+                                    ) {
+                                        Text(
+                                            text = "v8.9 STABLE",
+                                            color = activeTheme.accentColor,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        )
+                                    }
+                                }
+
                                 Text(
-                                    text = "CALC +",
-                                    color = activeTheme.screenTextColor,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Black
-                                )
-                                Text(
-                                    text = "Version 8.8 • Featuring 25+ Retro & Modern Themes, Multi-Language Internationalization, Rich Display Customization, GST & Global Tax Engine, Scientific & Programmer calculators, Live Age Chronometer, EMI and Unit Converters.",
+                                    text = "An analog-inspired computing instrument blending physical tactile feedback, kinetic retro-futuristic hardware aesthetics, and high-precision multi-engine mathematics.",
                                     color = activeTheme.screenExpressionColor,
                                     fontSize = 13.sp,
                                     lineHeight = 18.sp
                                 )
+                            }
+                        }
+                    }
+
+                    // Developer Spotlight Card
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = activeTheme.cardBackground,
+                            border = if (activeTheme.surfaceColor.luminance() > 0.45f) {
+                                androidx.compose.foundation.BorderStroke(1.dp, activeTheme.accentColor.copy(alpha = 0.25f))
+                            } else null,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(18.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = activeTheme.accentColor.copy(alpha = 0.2f),
+                                        border = androidx.compose.foundation.BorderStroke(1.5.dp, activeTheme.accentColor),
+                                        modifier = Modifier.size(48.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = Icons.Default.Person,
+                                                contentDescription = "Developer",
+                                                tint = activeTheme.accentColor,
+                                                modifier = Modifier.size(26.dp)
+                                            )
+                                        }
+                                    }
+
+                                    Column {
+                                        Surface(
+                                            shape = RoundedCornerShape(4.dp),
+                                            color = activeTheme.secondaryAccent.copy(alpha = 0.15f)
+                                        ) {
+                                            Text(
+                                                text = "LEAD ARCHITECT & DESIGNER",
+                                                color = activeTheme.secondaryAccent,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                letterSpacing = 0.5.sp,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = "Parth Siddhpura",
+                                            color = activeTheme.screenTextColor,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "parthgsiddhpura@gmail.com • Gujarat, India",
+                                            color = activeTheme.screenExpressionColor,
+                                            fontSize = 11.sp
+                                        )
+                                    }
+                                }
 
                                 HorizontalDivider(color = activeTheme.surfaceColor)
 
+                                Text(
+                                    text = "Parth Siddhpura is an Android engineer, UI/UX craftsman, and system designer dedicated to building high-precision, tactile, and aesthetically inspiring digital instruments. Passionate about blending vintage industrial hardware design (Dieter Rams' Braun, Casio engineering, Teenage Engineering, and Swiss Bauhaus) with modern Jetpack Compose architecture, Parth crafted Calc+ to bring physical weight, haptic feedback, analog warmth, and multi-disciplinary utility to the digital touchscreen.",
+                                    color = activeTheme.screenTextColor.copy(alpha = 0.88f),
+                                    fontSize = 12.5.sp,
+                                    lineHeight = 18.sp
+                                )
+                            }
+                        }
+                    }
+
+                    // Reset to Factory Defaults Card
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = activeTheme.cardBackground,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, activeTheme.accentColor.copy(alpha = 0.35f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(18.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = activeTheme.accentColor.copy(alpha = 0.15f),
+                                        modifier = Modifier.size(36.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = Icons.Default.RestartAlt,
+                                                contentDescription = "Reset Settings",
+                                                tint = activeTheme.accentColor,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
+
+                                    Column {
+                                        Text(
+                                            text = "Restore Default Settings",
+                                            color = activeTheme.screenTextColor,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "Reset all themes, displays & audio to factory setup",
+                                            color = activeTheme.screenExpressionColor,
+                                            fontSize = 11.sp
+                                        )
+                                    }
+                                }
+
+                                Text(
+                                    text = "Pressing the button below will immediately reset the entire app back to default settings: restores the Retro Circuit 90034 theme, sets the thousand separator to Indian (Lakh/Crore), turns on keystroke click audio and haptic vibrations, restores English language, and clears all custom style overrides.",
+                                    color = activeTheme.screenExpressionColor,
+                                    fontSize = 12.sp,
+                                    lineHeight = 17.sp
+                                )
+
                                 Button(
-                                    onClick = onResetAppearance,
+                                    onClick = {
+                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        showResetConfirmDialog = true
+                                    },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = activeTheme.surfaceColor,
-                                        contentColor = activeTheme.accentColor
+                                        containerColor = activeTheme.accentColor,
+                                        contentColor = if (activeTheme.accentColor.luminance() > 0.6f) Color(0xFF1E1E1E) else Color.White
                                     ),
                                     shape = RoundedCornerShape(10.dp),
                                     modifier = Modifier.fillMaxWidth()
@@ -1606,10 +1967,96 @@ fun SettingsSheet(
                                     Icon(
                                         imageVector = Icons.Default.RestartAlt,
                                         contentDescription = null,
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier.size(18.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Reset Appearance Customizations", fontWeight = FontWeight.Bold)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Reset All Settings to Defaults", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                }
+                            }
+                        }
+                    }
+
+                    // Release Updates & Highlights Matrix
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = activeTheme.cardBackground,
+                            border = if (activeTheme.surfaceColor.luminance() > 0.45f) {
+                                androidx.compose.foundation.BorderStroke(1.dp, activeTheme.accentColor.copy(alpha = 0.25f))
+                            } else null,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(18.dp),
+                                verticalArrangement = Arrangement.spacedBy(14.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AutoAwesome,
+                                        contentDescription = null,
+                                        tint = activeTheme.accentColor,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Text(
+                                        text = "What's New in Version 8.9",
+                                        color = activeTheme.screenTextColor,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                val featureHighlights = listOf(
+                                    "Default Indian (Lakh / Crore) Numbering" to "Displays format numbers using the Indian numbering system by default (e.g. ₹ 12,34,567.89 instead of 1,234,567.89), making GST, budgeting, and everyday arithmetic effortless to read. International Million/Billion and space styles remain selectable.",
+                                    "Kinetic Hardware Studio Themes" to "Features 4 custom studio themes: Retro Circuit 90034 (Japanese vermilion lacquer, amber VFD numerals, porcelain buttons, and animated electron packets along PCB bus lines), Nothing Dossier Mono, Swiss Bauhaus Dossier, Terracotta Studio, and superhero HUDs (Batman Dark Knight & Iron Man Arc Reactor).",
+                                    "10 Specialized Computing Engines" to "Standard with real-time live preview; Casio MJ-120GST inspired GST & Tax engine with +GST / -GST and custom slabs; Scientific laboratory with trigonometry, logs, and rad/deg; Draggable Worksheet & Paper Tape with exportable receipts; Programmer mode with QWORD/DWORD/WORD/BYTE bitwise logic; Loan EMI Calculator; Unit Converter (12+ categories); Live Currency Converter; Live Age Chronometer; and Dining Tip & Bill Splitter.",
+                                    "Custom Display Precision & Notation" to "Choose from Auto, 2, 4, 6 decimals or Full Exact precision, plus Standard, Scientific (1.25e+6), and Engineering (1.25 × 10⁶) notations with authentic CRT scanline filters.",
+                                    "Sensory Audio & Dynamic Haptics" to "Bespoke synthesized mechanical switch click sounds and haptic vibration for tactile keystroke feedback, coupled with responsive spring bounce physics.",
+                                    "12+ Languages & 100% Offline" to "Full internationalization for English, Hindi, Gujarati, Spanish, French, German, Japanese, and Chinese. Zero analytics tracking, 100% offline privacy, and local Room database persistence."
+                                )
+
+                                featureHighlights.forEachIndexed { index, (title, description) ->
+                                    Column(
+                                        verticalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = activeTheme.accentColor.copy(alpha = 0.15f),
+                                                modifier = Modifier.size(18.dp)
+                                            ) {
+                                                Box(contentAlignment = Alignment.Center) {
+                                                    Text(
+                                                        text = "${index + 1}",
+                                                        color = activeTheme.accentColor,
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                }
+                                            }
+                                            Text(
+                                                text = title,
+                                                color = activeTheme.screenTextColor,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                        Text(
+                                            text = description,
+                                            color = activeTheme.screenExpressionColor,
+                                            fontSize = 11.5.sp,
+                                            lineHeight = 16.sp,
+                                            modifier = Modifier.padding(start = 24.dp)
+                                        )
+                                    }
+                                    if (index < featureHighlights.size - 1) {
+                                        HorizontalDivider(color = activeTheme.surfaceColor.copy(alpha = 0.6f), modifier = Modifier.padding(vertical = 4.dp))
+                                    }
                                 }
                             }
                         }

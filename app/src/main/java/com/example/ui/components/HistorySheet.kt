@@ -53,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
@@ -62,6 +63,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.CalculationHistory
 import com.example.model.ThemePalette
+import com.example.model.onCardColor
+import com.example.model.onCardSubtextColor
+import com.example.model.onSurfaceSubtextColor
+import com.example.model.onSurfaceTextColor
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -91,7 +96,7 @@ fun HistorySheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = theme.surfaceColor,
-        contentColor = theme.screenTextColor,
+        contentColor = theme.onSurfaceTextColor,
         modifier = modifier
     ) {
         Column(
@@ -117,7 +122,7 @@ fun HistorySheet(
                     )
                     Text(
                         text = "Calculation History",
-                        color = theme.screenTextColor,
+                        color = theme.onSurfaceTextColor,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -137,7 +142,7 @@ fun HistorySheet(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close history",
-                            tint = theme.screenExpressionColor
+                            tint = theme.onSurfaceSubtextColor
                         )
                     }
                 }
@@ -154,14 +159,14 @@ fun HistorySheet(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = onSearchQueryChange,
-                    placeholder = { Text("Search calculations or notes...", color = theme.screenExpressionColor.copy(alpha = 0.6f), fontSize = 13.sp) },
+                    placeholder = { Text("Search calculations or notes...", color = theme.onCardSubtextColor.copy(alpha = 0.7f), fontSize = 13.sp) },
                     leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = theme.accentColor) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = theme.screenTextColor,
-                        unfocusedTextColor = theme.screenTextColor,
+                        focusedTextColor = theme.onCardColor,
+                        unfocusedTextColor = theme.onCardColor,
                         focusedBorderColor = theme.accentColor,
-                        unfocusedBorderColor = theme.cardBackground,
+                        unfocusedBorderColor = if (theme.surfaceColor.luminance() > 0.45f) theme.accentColor.copy(alpha = 0.35f) else theme.cardBackground,
                         focusedContainerColor = theme.cardBackground,
                         unfocusedContainerColor = theme.cardBackground
                     ),
@@ -172,6 +177,9 @@ fun HistorySheet(
                 Surface(
                     color = if (onlyFavorites) theme.accentColor else theme.cardBackground,
                     shape = RoundedCornerShape(12.dp),
+                    border = if (!onlyFavorites && theme.surfaceColor.luminance() > 0.45f) {
+                        androidx.compose.foundation.BorderStroke(1.dp, theme.accentColor.copy(alpha = 0.35f))
+                    } else null,
                     modifier = Modifier
                         .clickable { onToggleOnlyFavorites(!onlyFavorites) }
                         .height(52.dp)
@@ -180,7 +188,9 @@ fun HistorySheet(
                         Icon(
                             imageVector = if (onlyFavorites) Icons.Filled.Star else Icons.Outlined.StarBorder,
                             contentDescription = "Filter favorites",
-                            tint = if (onlyFavorites) theme.backgroundColor else theme.accentColor
+                            tint = if (onlyFavorites) {
+                                if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White
+                            } else theme.accentColor
                         )
                     }
                 }
@@ -197,13 +207,13 @@ fun HistorySheet(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = if (searchQuery.isNotEmpty() || onlyFavorites) "No matching calculations found" else "No history yet",
-                            color = theme.screenExpressionColor,
+                            color = theme.onSurfaceTextColor,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
                         )
                         Text(
                             text = "Calculate something to see your calculation tape here",
-                            color = theme.screenExpressionColor.copy(alpha = 0.6f),
+                            color = theme.onSurfaceSubtextColor,
                             fontSize = 12.sp,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(top = 4.dp, start = 24.dp, end = 24.dp)
@@ -243,8 +253,8 @@ fun HistorySheet(
     if (showClearConfirmation) {
         AlertDialog(
             onDismissRequest = { showClearConfirmation = false },
-            title = { Text("Clear All History?", color = theme.screenTextColor, fontWeight = FontWeight.Bold) },
-            text = { Text("This will permanently remove all your past calculations and notes.", color = theme.screenExpressionColor) },
+            title = { Text("Clear All History?", color = theme.onSurfaceTextColor, fontWeight = FontWeight.Bold) },
+            text = { Text("This will permanently remove all your past calculations and notes.", color = theme.onSurfaceSubtextColor) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -285,6 +295,9 @@ fun HistoryCard(
     Surface(
         color = theme.cardBackground,
         shape = cardShape,
+        border = if (theme.surfaceColor.luminance() > 0.45f) {
+            androidx.compose.foundation.BorderStroke(1.dp, theme.accentColor.copy(alpha = 0.3f))
+        } else null,
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
@@ -315,7 +328,7 @@ fun HistoryCard(
                     }
                     Text(
                         text = formattedTime,
-                        color = theme.screenExpressionColor.copy(alpha = 0.6f),
+                        color = theme.onCardSubtextColor.copy(alpha = 0.7f),
                         fontSize = 11.sp
                     )
                 }
@@ -328,7 +341,7 @@ fun HistoryCard(
                         Icon(
                             imageVector = Icons.Default.EditNote,
                             contentDescription = "Edit note",
-                            tint = if (item.note.isNotEmpty()) theme.secondaryAccent else theme.screenExpressionColor.copy(alpha = 0.5f),
+                            tint = if (item.note.isNotEmpty()) theme.secondaryAccent else theme.onCardSubtextColor.copy(alpha = 0.6f),
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -340,7 +353,7 @@ fun HistoryCard(
                         Icon(
                             imageVector = if (item.isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
                             contentDescription = "Favorite calculation",
-                            tint = if (item.isFavorite) Color(0xFFFFB703) else theme.screenExpressionColor.copy(alpha = 0.5f),
+                            tint = if (item.isFavorite) Color(0xFFFFB703) else theme.onCardSubtextColor.copy(alpha = 0.6f),
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -369,7 +382,7 @@ fun HistoryCard(
             // Expression
             Text(
                 text = item.expression,
-                color = theme.screenExpressionColor,
+                color = theme.onCardSubtextColor,
                 fontSize = 14.sp,
                 fontFamily = FontFamily.Monospace,
                 maxLines = 2
@@ -385,7 +398,7 @@ fun HistoryCard(
             ) {
                 Text(
                     text = "= ${item.result}",
-                    color = theme.screenTextColor,
+                    color = theme.onCardColor,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace

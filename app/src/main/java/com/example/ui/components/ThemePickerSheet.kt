@@ -55,6 +55,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -62,6 +63,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.ThemeId
 import com.example.model.ThemePalette
+import com.example.model.onCardColor
+import com.example.model.onCardSubtextColor
+import com.example.model.onSurfaceSubtextColor
+import com.example.model.onSurfaceTextColor
 import com.example.ui.theme.CalculatorThemes
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,7 +87,7 @@ fun ThemePickerSheet(
     var searchQuery by remember { mutableStateOf("") }
     var filterMode by remember { mutableStateOf("All") } // "All", "Dark Only", "Light Only"
 
-    val categories = listOf("All", "Neumorphic & Glass", "Interactive Dark", "Retro", "Playful", "Minimal & Aesthetic", "Futuristic", "Modern Art", "Atmospheric", "Luxury & Clean")
+    val categories = listOf("All", "Kawaii & Cute", "Neumorphic & Glass", "Interactive Dark", "Retro", "Playful", "Minimal & Aesthetic", "Futuristic", "Modern Art", "Atmospheric", "Luxury & Clean")
 
     val filteredThemes = remember(selectedCategory, searchQuery, filterMode) {
         CalculatorThemes.allThemes.filter { theme ->
@@ -105,7 +110,7 @@ fun ThemePickerSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = activeTheme.surfaceColor,
-        contentColor = activeTheme.screenTextColor,
+        contentColor = activeTheme.onSurfaceTextColor,
         modifier = modifier
     ) {
         Column(
@@ -132,13 +137,13 @@ fun ThemePickerSheet(
                     Column {
                         Text(
                             text = "Theme Switcher & Gallery",
-                            color = activeTheme.screenTextColor,
+                            color = activeTheme.onSurfaceTextColor,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = "${CalculatorThemes.allThemes.size} crafted visual styles",
-                            color = activeTheme.screenExpressionColor,
+                            color = activeTheme.onSurfaceSubtextColor,
                             fontSize = 12.sp
                         )
                     }
@@ -165,7 +170,7 @@ fun ThemePickerSheet(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close theme selector",
-                            tint = activeTheme.screenExpressionColor
+                            tint = activeTheme.onSurfaceSubtextColor
                         )
                     }
                 }
@@ -175,6 +180,9 @@ fun ThemePickerSheet(
             Surface(
                 color = activeTheme.cardBackground,
                 shape = RoundedCornerShape(14.dp),
+                border = if (activeTheme.surfaceColor.luminance() > 0.45f) {
+                    androidx.compose.foundation.BorderStroke(1.dp, activeTheme.accentColor.copy(alpha = 0.3f))
+                } else null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
@@ -199,7 +207,7 @@ fun ThemePickerSheet(
                         )
                         Text(
                             text = "Sound",
-                            color = activeTheme.screenTextColor,
+                            color = activeTheme.onCardColor,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -234,7 +242,7 @@ fun ThemePickerSheet(
                         )
                         Text(
                             text = "Haptics",
-                            color = activeTheme.screenTextColor,
+                            color = activeTheme.onCardColor,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -265,7 +273,7 @@ fun ThemePickerSheet(
                     placeholder = {
                         Text(
                             text = "Search themes by name or vibe...",
-                            color = activeTheme.screenExpressionColor.copy(alpha = 0.6f),
+                            color = activeTheme.onCardSubtextColor.copy(alpha = 0.7f),
                             fontSize = 13.sp
                         )
                     },
@@ -283,7 +291,7 @@ fun ThemePickerSheet(
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Clear search",
-                                    tint = activeTheme.screenExpressionColor,
+                                    tint = activeTheme.onCardSubtextColor,
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -293,11 +301,11 @@ fun ThemePickerSheet(
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = activeTheme.accentColor,
-                        unfocusedBorderColor = activeTheme.cardBackground,
+                        unfocusedBorderColor = if (activeTheme.surfaceColor.luminance() > 0.45f) activeTheme.accentColor.copy(alpha = 0.35f) else activeTheme.cardBackground,
                         focusedContainerColor = activeTheme.cardBackground,
                         unfocusedContainerColor = activeTheme.cardBackground,
-                        focusedTextColor = activeTheme.screenTextColor,
-                        unfocusedTextColor = activeTheme.screenTextColor
+                        focusedTextColor = activeTheme.onCardColor,
+                        unfocusedTextColor = activeTheme.onCardColor
                     ),
                     modifier = Modifier
                         .weight(1f)
@@ -308,6 +316,9 @@ fun ThemePickerSheet(
                 Surface(
                     color = activeTheme.cardBackground,
                     shape = RoundedCornerShape(12.dp),
+                    border = if (activeTheme.surfaceColor.luminance() > 0.45f) {
+                        androidx.compose.foundation.BorderStroke(1.dp, activeTheme.accentColor.copy(alpha = 0.35f))
+                    } else null,
                     modifier = Modifier
                         .height(52.dp)
                         .clip(RoundedCornerShape(12.dp))
@@ -341,7 +352,7 @@ fun ThemePickerSheet(
                                 "Light Only" -> "Light"
                                 else -> "All"
                             },
-                            color = activeTheme.screenTextColor,
+                            color = activeTheme.onCardColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -361,13 +372,18 @@ fun ThemePickerSheet(
                     Surface(
                         color = if (isSelected) activeTheme.accentColor else activeTheme.cardBackground,
                         shape = RoundedCornerShape(10.dp),
+                        border = if (!isSelected && activeTheme.surfaceColor.luminance() > 0.45f) {
+                            androidx.compose.foundation.BorderStroke(1.dp, activeTheme.accentColor.copy(alpha = 0.3f))
+                        } else null,
                         modifier = Modifier
                             .clickable { selectedCategory = cat }
                             .testTag("theme_category_$cat")
                     ) {
                         Text(
                             text = cat,
-                            color = if (isSelected) activeTheme.backgroundColor else activeTheme.screenExpressionColor,
+                            color = if (isSelected) {
+                                if (activeTheme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White
+                            } else activeTheme.onCardColor,
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -426,6 +442,25 @@ fun ThemeCard(
     val cardShape = RoundedCornerShape(16.dp)
     var testTapCounter by remember { mutableStateOf(0) }
 
+    val isLightBg = theme.backgroundColor.luminance() > 0.45f
+    val titleColor = if (isLightBg) {
+        if (theme.id == ThemeId.NEKO_MOCHI_CAT) Color(0xFF3B1A23)
+        else if (theme.screenTextColor.luminance() > 0.45f) Color(0xFF1E1E1E)
+        else theme.screenTextColor
+    } else {
+        if (theme.screenTextColor.luminance() < 0.35f) Color(0xFFF5F5F5)
+        else theme.screenTextColor
+    }
+
+    val subtitleColor = if (isLightBg) {
+        if (theme.id == ThemeId.NEKO_MOCHI_CAT) Color(0xFF70404C)
+        else if (theme.screenExpressionColor.luminance() > 0.45f) Color(0xFF555555)
+        else theme.screenExpressionColor
+    } else {
+        if (theme.screenExpressionColor.luminance() < 0.35f) Color(0xFFBBBBBB)
+        else theme.screenExpressionColor
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -455,7 +490,7 @@ fun ThemeCard(
                 ) {
                     Text(
                         text = theme.name,
-                        color = theme.screenTextColor,
+                        color = titleColor,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -508,6 +543,127 @@ fun ThemeCard(
                             }
                         }
                     }
+                    if (theme.isGirlMath) {
+                        Surface(
+                            color = Color(0x33FF5277),
+                            shape = RoundedCornerShape(6.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, Color(0x88FF5277))
+                        ) {
+                            Text(
+                                text = "♡ GIRL MATH",
+                                color = Color(0xFFFF5277),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                    if (theme.isNekoMochi) {
+                        Surface(
+                            color = if (theme.isDark) Color(0x44FF4D79) else Color(0x33FF85A1),
+                            shape = RoundedCornerShape(6.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, if (theme.isDark) Color(0xFFFF4D79) else Color(0x88FF85A1))
+                        ) {
+                            Text(
+                                text = if (theme.isDark) "🐾 MIDNIGHT CAT" else "🐾 MOCHI CAT",
+                                color = if (theme.isDark) Color(0xFFFF85A1) else Color(0xFFFF5277),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                    if (theme.isY2kGlossy) {
+                        Surface(
+                            color = Color(0x33A2E8DD),
+                            shape = RoundedCornerShape(6.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, Color(0xFFA2E8DD))
+                        ) {
+                            Text(
+                                text = "✨ Y2K GLOSSY",
+                                color = Color(0xFF144740),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                    if (theme.isPixelArt) {
+                        Surface(
+                            color = Color(0x3300FF66),
+                            shape = RoundedCornerShape(4.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, Color(0x8800FF66))
+                        ) {
+                            Text(
+                                text = "👾 8-BIT",
+                                color = Color(0xFF00FF66),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                    if (theme.isRetroCircuit) {
+                        Surface(
+                            color = theme.accentColor.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(6.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, theme.accentColor)
+                        ) {
+                            Text(
+                                text = "⚡ RETRO CIRCUIT",
+                                color = theme.accentColor,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                    if (theme.isNothingDossier) {
+                        Surface(
+                            color = theme.accentColor.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(6.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, theme.accentColor)
+                        ) {
+                            Text(
+                                text = "▫ NOTHING DOSSIER",
+                                color = theme.accentColor,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                    if (theme.isBauhausDossier) {
+                        Surface(
+                            color = theme.accentColor.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(6.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, theme.accentColor)
+                        ) {
+                            Text(
+                                text = "▣ SWISS BAUHAUS",
+                                color = theme.accentColor,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                    if (theme.isTerracottaStudio) {
+                        Surface(
+                            color = theme.accentColor.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(6.dp),
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, theme.accentColor)
+                        ) {
+                            Text(
+                                text = "⚪ TERRACOTTA",
+                                color = theme.accentColor,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
                     Surface(
                         color = theme.accentColor.copy(alpha = 0.2f),
                         shape = RoundedCornerShape(6.dp)
@@ -554,7 +710,7 @@ fun ThemeCard(
 
                 Text(
                     text = theme.subtitle,
-                    color = theme.screenExpressionColor,
+                    color = subtitleColor,
                     fontSize = 12.sp
                 )
 

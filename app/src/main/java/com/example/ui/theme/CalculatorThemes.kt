@@ -1464,36 +1464,37 @@ object CalculatorThemes {
         category = "Interactive Dark",
         isDark = true,
         backgroundBrush = Brush.verticalGradient(
-            colors = listOf(Color(0xFF090B0F), Color(0xFF13171F), Color(0xFF07090C))
+            colors = listOf(Color(0xFF090B0E), Color(0xFF11141A), Color(0xFF060709))
         ),
-        backgroundColor = Color(0xFF0A0C10),
-        surfaceColor = Color(0xFF151922),
-        cardBackground = Color(0xFF1E2430),
-        screenBackground = Color(0xFF06080B),
-        screenBorderColor = Color(0xFF2B3645),
-        screenTextColor = Color(0xFFFFFFFF),
+        backgroundColor = Color(0xFF090B0E),
+        surfaceColor = Color(0xFF151921),
+        cardBackground = Color(0xFF1A1F29),
+        screenBackground = Color(0xFF040608),
+        screenBorderColor = Color(0xFF263040),
+        screenTextColor = Color(0xFFF8FAFC),
         screenExpressionColor = Color(0xFF8B9CB0),
-        screenPreviewColor = Color(0xFFFFE500),
-        cursorColor = Color(0xFFFFE500),
+        screenPreviewColor = Color(0xFFF59E0B),
+        cursorColor = Color(0xFFF59E0B),
         displayFont = DisplayFontType.MODERN_SANS,
         hasScanlines = false,
         hasBatSignal = true,
-        numberButtonBg = Color(0xFF181E27),
-        numberButtonText = Color(0xFFFFFFFF),
-        numberButtonBorder = Color(0x33FFE500),
-        operatorButtonBg = Color(0xFF222B38),
-        operatorButtonText = Color(0xFFFFE500),
-        operatorButtonBorder = Color(0x66FFE500),
-        functionButtonBg = Color(0xFF2B3647),
-        functionButtonText = Color(0xFFFFE500),
-        functionButtonBorder = Color(0x44FFE500),
+        numberButtonBg = Color(0xFF131720),
+        numberButtonText = Color(0xFFF1F5F9),
+        numberButtonBorder = Color(0xFF263042),
+        operatorButtonBg = Color(0xFF1C2230),
+        operatorButtonText = Color(0xFFFBBF24),
+        operatorButtonBorder = Color(0x55F59E0B),
+        functionButtonBg = Color(0xFF181E28),
+        functionButtonText = Color(0xFF94A3B8),
+        functionButtonBorder = Color(0xFF283244),
         equalsButtonBrush = Brush.linearGradient(
-            colors = listOf(Color(0xFFFFEA00), Color(0xFFFFB700))
+            colors = listOf(Color(0xFFF59E0B), Color(0xFFD97706))
         ),
-        equalsButtonText = Color(0xFF0A0C10),
-        accentColor = Color(0xFFFFE500),
-        secondaryAccent = Color(0xFFFFD000),
-        glowColor = Color(0x66FFE500),
+        equalsButtonText = Color(0xFF080A0E),
+        equalsButtonBorder = Color(0xFFFBBF24),
+        accentColor = Color(0xFFF59E0B),
+        secondaryAccent = Color(0xFFFBBF24),
+        glowColor = Color(0x66F59E0B),
         shapeType = ButtonShapeType.ROUNDED_SQUARE,
         cornerRadiusDp = 18.dp,
         borderWidthDp = 1.2.dp,
@@ -2411,9 +2412,529 @@ object CalculatorThemes {
         statusBarDarkIcons = true
     )
 
+    // ==========================================
+    // 4 PREMIER KAWAII & GIRL AESTHETIC THEMES
+    // ==========================================
+
+    /**
+     * 1. Pico-Calc 8-Bit Pixel (Sample 1: 1fbebea4333a5cc2576b10b652e968ee.jpg)
+     * Inspired by fantasy consoles with glowing emerald LCD, chunky pixel-beveled keys,
+     * vivid pixel magenta AC key, and chiptune 8-bit vibes.
+     */
+    val PicoKawaiiPixel = ThemePalette(
+        id = ThemeId.PICO_KAWAII_PIXEL,
+        name = "Pico-Calc 8-Bit",
+        subtitle = "Pixel indie console with emerald LCD & chiptune vibes",
+        category = "Kawaii & Cute",
+        isDark = false,
+        backgroundBrush = Brush.verticalGradient(
+            listOf(Color(0xFF2C1938), Color(0xFF1E0F27), Color(0xFF150A1C))
+        ),
+        backgroundColor = Color(0xFF24142F),
+        surfaceColor = Color(0xFF8F85AA),
+        cardBackground = Color(0xFF382046),
+        screenBackground = Color(0xFF135B3B),
+        screenBorderColor = Color(0xFF2D1836),
+        screenTextColor = Color(0xFF00FF66),
+        screenExpressionColor = Color(0xFFA7FFC7),
+        screenPreviewColor = Color(0xFF4EE88D),
+        cursorColor = Color(0xFF00FF66),
+        displayFont = DisplayFontType.PIXEL_8BIT,
+        hasScanlines = true,
+        numberButtonBg = Color(0xFF8B80A5),
+        numberButtonText = Color(0xFF1E1024),
+        numberButtonBorder = Color(0xFF453055),
+        operatorButtonBg = Color(0xFFA096BC),
+        operatorButtonText = Color(0xFF1E1024),
+        operatorButtonBorder = Color(0xFF453055),
+        functionButtonBg = Color(0xFFFF528E),
+        functionButtonText = Color(0xFFFFFFFF),
+        functionButtonBorder = Color(0xFF3D1022),
+        equalsButtonBrush = Brush.verticalGradient(
+            listOf(Color(0xFFFFBE0B), Color(0xFFFB5607))
+        ),
+        equalsButtonText = Color(0xFF1E1024),
+        equalsButtonBorder = Color(0xFF5A3000),
+        accentColor = Color(0xFF00FF66),
+        secondaryAccent = Color(0xFFFF528E),
+        glowColor = Color(0x6600FF66),
+        shapeType = ButtonShapeType.PIXEL_BLOCK,
+        cornerRadiusDp = 3.dp,
+        borderWidthDp = 1.8.dp,
+        hasShadow = true,
+        shadowElevationDp = 3.dp,
+        pressAnimation = PressAnimationType.PIXEL_STEP,
+        statusBarDarkIcons = false,
+        isPixelArt = true
+    )
+
+    /**
+     * 2. Girl Math Pastel (Sample 2: 80f1f24af853bfe7a09e6afbe7ee3c6b.jpg)
+     * Iconic pastel candy drops, peeking kitten charm, soft ice-blue digital LCD,
+     * and every key bathed in its authentic pastel candy shade.
+     */
+    val GirlMathPastel = ThemePalette(
+        id = ThemeId.GIRL_MATH_PASTEL,
+        name = "Girl Math Pastel",
+        subtitle = "Sweet pastel candy drops, peeking kitten charms & soft aesthetic vibes",
+        category = "Kawaii & Cute",
+        isDark = false,
+        backgroundBrush = Brush.verticalGradient(
+            listOf(Color(0xFFFFF0F5), Color(0xFFFFE1EC), Color(0xFFFFF5F8))
+        ),
+        backgroundColor = Color(0xFFFFF0F5),
+        surfaceColor = Color(0xFFFFE4EE),
+        cardBackground = Color(0xFFFFFFFF),
+        screenBackground = Color(0xFFE8F4FC),
+        screenBorderColor = Color(0xFFFFD1DC),
+        screenTextColor = Color(0xFF2C3E50),
+        screenExpressionColor = Color(0xFF6C7A89),
+        screenPreviewColor = Color(0xFF8E9BAE),
+        cursorColor = Color(0xFFFF6584),
+        displayFont = DisplayFontType.ROUNDED,
+        numberButtonBg = Color(0xFFFFF5F8),
+        numberButtonText = Color(0xFF5A3840),
+        numberButtonBorder = Color(0xFFFFD6E0),
+        operatorButtonBg = Color(0xFFFFD1DC),
+        operatorButtonText = Color(0xFF5A3840),
+        operatorButtonBorder = Color(0xFFFFC0D0),
+        functionButtonBg = Color(0xFFFF6584),
+        functionButtonText = Color(0xFFFFFFFF),
+        functionButtonBorder = Color(0xFFFF486E),
+        equalsButtonBrush = Brush.verticalGradient(
+            listOf(Color(0xFF70DECD), Color(0xFF48CFAD))
+        ),
+        equalsButtonText = Color(0xFFFFFFFF),
+        equalsButtonBorder = Color(0xFF34BC9D),
+        accentColor = Color(0xFFFF6584),
+        secondaryAccent = Color(0xFF70DECD),
+        glowColor = Color(0x40FF6584),
+        shapeType = ButtonShapeType.CIRCLE,
+        cornerRadiusDp = 26.dp,
+        borderWidthDp = 1.2.dp,
+        hasShadow = true,
+        shadowElevationDp = 4.dp,
+        pressAnimation = PressAnimationType.JELLY_SQUISH,
+        statusBarDarkIcons = true,
+        isGirlMath = true,
+        customKeyColors = mapOf(
+            "AC" to Color(0xFFFF5277),
+            "⌫" to Color(0xFFFF7597),
+            "%" to Color(0xFFFFD1A9),
+            "÷" to Color(0xFFFFB366),
+            "×" to Color(0xFFFF85A1),
+            "−" to Color(0xFFC8B6FF),
+            "+" to Color(0xFFFF6584),
+            "=" to Color(0xFF70DECD),
+            "7" to Color(0xFFFFE8EE),
+            "8" to Color(0xFFFFE8EE),
+            "9" to Color(0xFFFFE8EE),
+            "4" to Color(0xFFFFE0E8),
+            "5" to Color(0xFFFFE0E8),
+            "6" to Color(0xFFFFE0E8),
+            "1" to Color(0xFFFFD8E2),
+            "2" to Color(0xFFFFD8E2),
+            "3" to Color(0xFFFFD8E2),
+            "0" to Color(0xFFFFD0DC),
+            "." to Color(0xFFD6EEFF),
+            "±" to Color(0xFFE2DCFE)
+        ),
+        customKeyTextColors = mapOf(
+            "AC" to Color.White,
+            "⌫" to Color.White,
+            "+" to Color.White,
+            "=" to Color.White
+        )
+    )
+
+    /**
+     * 3. Y2K Glossy Pop (Sample 3: efa7524e748bc4b1564605a1f14f69d8.jpg)
+     * Glossy bubblegum pink resin shell, pure porcelain white screen cutout,
+     * fresh seafoam mint accents, and 3D specular light dome reflections.
+     */
+    val Y2kGlossyPop = ThemePalette(
+        id = ThemeId.Y2K_GLOSSY_POP,
+        name = "Y2K Glossy Pop",
+        subtitle = "Glossy bubblegum pink resin, mint accents & specular shine",
+        category = "Kawaii & Cute",
+        isDark = false,
+        backgroundBrush = Brush.verticalGradient(
+            listOf(Color(0xFFFF3377), Color(0xFFFF528E), Color(0xFFFF69A6))
+        ),
+        backgroundColor = Color(0xFFFF528E),
+        surfaceColor = Color(0xFFFF6B9D),
+        cardBackground = Color(0xFFFF85AE),
+        screenBackground = Color(0xFFFFFFFF),
+        screenBorderColor = Color(0xFF7A1D42),
+        screenTextColor = Color(0xFF1F1D2B),
+        screenExpressionColor = Color(0xFF6B6577),
+        screenPreviewColor = Color(0xFF8E889E),
+        cursorColor = Color(0xFFFF3377),
+        displayFont = DisplayFontType.MODERN_SANS,
+        numberButtonBg = Color(0xFFFFFDF8),
+        numberButtonText = Color(0xFF211D25),
+        numberButtonBorder = Color(0xFF661738),
+        operatorButtonBg = Color(0xFFFF6E9A),
+        operatorButtonText = Color(0xFFFFFFFF),
+        operatorButtonBorder = Color(0xFF661738),
+        functionButtonBg = Color(0xFFA2E8DD),
+        functionButtonText = Color(0xFF1A4742),
+        functionButtonBorder = Color(0xFF1A4742),
+        equalsButtonBrush = Brush.verticalGradient(
+            listOf(Color(0xFFFF7597), Color(0xFFFF3366))
+        ),
+        equalsButtonText = Color(0xFFFFFFFF),
+        equalsButtonBorder = Color(0xFF661738),
+        accentColor = Color(0xFFA2E8DD),
+        secondaryAccent = Color(0xFFFFEAA7),
+        glowColor = Color(0x60A2E8DD),
+        shapeType = ButtonShapeType.GLOSSY_JELLY,
+        cornerRadiusDp = 16.dp,
+        borderWidthDp = 1.8.dp,
+        hasShadow = true,
+        shadowElevationDp = 5.dp,
+        pressAnimation = PressAnimationType.JELLY_SQUISH,
+        statusBarDarkIcons = false,
+        isY2kGlossy = true,
+        customKeyColors = mapOf(
+            "+" to Color(0xFFA2E8DD),
+            "AC" to Color(0xFFA2E8DD),
+            "⌫" to Color(0xFFFFEAA7),
+            "%" to Color(0xFFFFEAA7),
+            "÷" to Color(0xFFFF7597),
+            "×" to Color(0xFFFF7597),
+            "−" to Color(0xFFFF7597),
+            "=" to Color(0xFFFF3366)
+        ),
+        customKeyTextColors = mapOf(
+            "+" to Color(0xFF144740),
+            "AC" to Color(0xFF144740),
+            "⌫" to Color(0xFF4A3E00),
+            "%" to Color(0xFF4A3E00),
+            "=" to Color.White
+        )
+    )
+
+    /**
+     * 4. Neko Mochi Cat (Sample 4: af920d166b393efe89e2629bf7fa24f9.jpg)
+     * The viral Cat-culator where every key is a squishy mochi kitten with cat ears,
+     * cute expressions, warm chocolate mocha screen, and soothing purr animations.
+     */
+    val NekoMochiCat = ThemePalette(
+        id = ThemeId.NEKO_MOCHI_CAT,
+        name = "Neko Mochi Cat",
+        subtitle = "Squishy mochi kittens with cute ears, blushing faces & purr warmth",
+        category = "Kawaii & Cute",
+        isDark = false,
+        backgroundBrush = Brush.verticalGradient(
+            listOf(Color(0xFFFFF4F7), Color(0xFFFFEAF0), Color(0xFFFFF0F4))
+        ),
+        backgroundColor = Color(0xFFFFF4F7),
+        surfaceColor = Color(0xFFFFDDE6),
+        cardBackground = Color(0xFFFFFFFF),
+        screenBackground = Color(0xFF45272F),
+        screenBorderColor = Color(0xFF70404C),
+        screenTextColor = Color(0xFFFFE0E8),
+        screenExpressionColor = Color(0xFFFFB5C5),
+        screenPreviewColor = Color(0xFFFF9EAA),
+        cursorColor = Color(0xFFFF85A1),
+        displayFont = DisplayFontType.ROUNDED,
+        numberButtonBg = Color(0xFFFFFDF9),
+        numberButtonText = Color(0xFF42242C),
+        numberButtonBorder = Color(0xFF754551),
+        operatorButtonBg = Color(0xFFFF9EAA),
+        operatorButtonText = Color(0xFF3B1A23),
+        operatorButtonBorder = Color(0xFF754551),
+        functionButtonBg = Color(0xFFFFC7B3),
+        functionButtonText = Color(0xFF3B1A23),
+        functionButtonBorder = Color(0xFF754551),
+        equalsButtonBrush = Brush.verticalGradient(
+            listOf(Color(0xFFFF85A1), Color(0xFFFF5277))
+        ),
+        equalsButtonText = Color(0xFFFFFFFF),
+        equalsButtonBorder = Color(0xFF754551),
+        accentColor = Color(0xFFFF85A1),
+        secondaryAccent = Color(0xFFFFC7B3),
+        glowColor = Color(0x40FF85A1),
+        shapeType = ButtonShapeType.NEKO_EARS,
+        cornerRadiusDp = 18.dp,
+        borderWidthDp = 1.5.dp,
+        hasShadow = true,
+        shadowElevationDp = 4.dp,
+        pressAnimation = PressAnimationType.JELLY_SQUISH,
+        statusBarDarkIcons = true,
+        isNekoMochi = true
+    )
+
+    /**
+     * 5. Neko Mochi Dark (Midnight Kitten Variant)
+     * Dark theme variant for Neko Mochi Cat:
+     * Deep midnight espresso/blackberry casing, glowing pink cat ears,
+     * obsidian cat-eye screen, cozy dark chocolate keys with blushing pink faces!
+     */
+    val NekoMochiDark = ThemePalette(
+        id = ThemeId.NEKO_MOCHI_DARK,
+        name = "Neko Mochi Dark",
+        subtitle = "Midnight kitten with glowing pink ears, starry paws & obsidian warmth",
+        category = "Kawaii & Cute",
+        isDark = true,
+        backgroundBrush = Brush.verticalGradient(
+            listOf(Color(0xFF1E131C), Color(0xFF140C13), Color(0xFF190E17))
+        ),
+        backgroundColor = Color(0xFF140C13),
+        surfaceColor = Color(0xFF2B1824),
+        cardBackground = Color(0xFF22141E),
+        screenBackground = Color(0xFF0D060C),
+        screenBorderColor = Color(0xFF52233C),
+        screenTextColor = Color(0xFFFFB5C5),
+        screenExpressionColor = Color(0xFFFF85A1),
+        screenPreviewColor = Color(0xFFFF6E9A),
+        cursorColor = Color(0xFFFF5277),
+        displayFont = DisplayFontType.ROUNDED,
+        numberButtonBg = Color(0xFF281723),
+        numberButtonText = Color(0xFFFFE6ED),
+        numberButtonBorder = Color(0xFF5A263F),
+        operatorButtonBg = Color(0xFFFF4D79),
+        operatorButtonText = Color.White,
+        operatorButtonBorder = Color(0xFFFF85A1),
+        functionButtonBg = Color(0xFF482037),
+        functionButtonText = Color(0xFFFFD4E2),
+        functionButtonBorder = Color(0xFF702F52),
+        equalsButtonBrush = Brush.verticalGradient(
+            listOf(Color(0xFFFF5277), Color(0xFFFF2E63))
+        ),
+        equalsButtonText = Color.White,
+        equalsButtonBorder = Color(0xFFFF85A1),
+        accentColor = Color(0xFFFF4D79),
+        secondaryAccent = Color(0xFFFFB5C5),
+        glowColor = Color(0x60FF4D79),
+        shapeType = ButtonShapeType.NEKO_EARS,
+        cornerRadiusDp = 18.dp,
+        borderWidthDp = 1.5.dp,
+        hasShadow = true,
+        shadowElevationDp = 5.dp,
+        pressAnimation = PressAnimationType.JELLY_SQUISH,
+        statusBarDarkIcons = false,
+        isNekoMochi = true
+    )
+
+    /**
+     * 6. Retro Circuit 90034 (Cyber-Vermilion Chassis, Warm Cream Porcelain & Glowing Gold PCB)
+     * Inspired directly by uploaded image: dad8332b0a3897bdff7cee441e2b326c.jpg
+     */
+    val RetroCircuitRed = ThemePalette(
+        id = ThemeId.RETRO_CIRCUIT_RED,
+        name = "Retro Circuit 90034",
+        subtitle = "Cyber-vermilion housing, warm cream alabaster keys & illuminated gold PCB",
+        category = "Retro",
+        isDark = true,
+        backgroundBrush = Brush.verticalGradient(
+            listOf(Color(0xFF9E141D), Color(0xFF7E0F16), Color(0xFF56090E))
+        ),
+        backgroundColor = Color(0xFF7E0F16),
+        surfaceColor = Color(0x35FFFFFF),
+        cardBackground = Color(0xFF2A0D10),
+        screenBackground = Color(0xFF0E080A),
+        screenBorderColor = Color(0xFFE59866),
+        screenTextColor = Color(0xFFFFC233),
+        screenExpressionColor = Color(0xFFFF9E66),
+        screenPreviewColor = Color(0xFFFF5252),
+        cursorColor = Color(0xFFFFC233),
+        displayFont = DisplayFontType.MONOSPACE,
+        hasScanlines = true,
+        numberButtonBg = Color(0xFFFCFAF5),
+        numberButtonText = Color(0xFF231C18),
+        numberButtonBorder = Color(0xFFE5DCCE),
+        operatorButtonBg = Color(0xFFD32F2F),
+        operatorButtonText = Color.White,
+        operatorButtonBorder = Color(0xFFB71C1C),
+        functionButtonBg = Color(0xFFE4D9C8),
+        functionButtonText = Color(0xFF2A211A),
+        functionButtonBorder = Color(0xFFD0C2AE),
+        equalsButtonBrush = Brush.linearGradient(
+            listOf(Color(0xFFFF3D00), Color(0xFFFF9100))
+        ),
+        equalsButtonText = Color.White,
+        equalsButtonBorder = Color(0xFFFFC233),
+        accentColor = Color(0xFFE53935),
+        secondaryAccent = Color(0xFFFFC233),
+        glowColor = Color(0x60FF9100),
+        shapeType = ButtonShapeType.ROUNDED_SQUARE,
+        cornerRadiusDp = 14.dp,
+        borderWidthDp = 1.2.dp,
+        hasShadow = true,
+        shadowElevationDp = 4.dp,
+        pressAnimation = PressAnimationType.BOUNCE,
+        statusBarDarkIcons = false,
+        isRetroCircuit = true
+    )
+
+    /**
+     * 7. Nothing Dossier Mono (Perforated Dot Matrix & Asymmetric Folder Tab)
+     * Inspired directly by uploaded image: 6963819ac965069e66eb449120af0579.jpg
+     */
+    val NothingDossier = ThemePalette(
+        id = ThemeId.NOTHING_DOSSIER,
+        name = "Nothing Dossier Mono",
+        subtitle = "Minimalist perforated dot matrix, asymmetric folder tab & glyph red",
+        category = "Minimal & Aesthetic",
+        isDark = true,
+        backgroundBrush = Brush.verticalGradient(
+            listOf(Color(0xFF141619), Color(0xFF0F1012), Color(0xFF0A0B0C))
+        ),
+        backgroundColor = Color(0xFF0B0C0E),
+        surfaceColor = Color(0xFF1A1D22),
+        cardBackground = Color(0xFF22262D),
+        screenBackground = Color(0xFF08090A),
+        screenBorderColor = Color(0xFF2D323B),
+        screenTextColor = Color(0xFFFFFFFF),
+        screenExpressionColor = Color(0xFF8E95A5),
+        screenPreviewColor = Color(0xFFFF3333),
+        cursorColor = Color(0xFFFF3333),
+        displayFont = DisplayFontType.MONOSPACE,
+        numberButtonBg = Color(0xFF191B20),
+        numberButtonText = Color(0xFFF5F7FA),
+        numberButtonBorder = Color(0xFF2A2E38),
+        operatorButtonBg = Color(0xFFF0F2F5),
+        operatorButtonText = Color(0xFF0E1013),
+        operatorButtonBorder = Color(0xFFFFFFFF),
+        functionButtonBg = Color(0xFF242831),
+        functionButtonText = Color(0xFFD4D8E2),
+        functionButtonBorder = Color(0xFF383E4C),
+        equalsButtonBrush = Brush.linearGradient(
+            listOf(Color(0xFFEB261E), Color(0xFFFF3B30))
+        ),
+        equalsButtonText = Color.White,
+        equalsButtonBorder = Color(0xFFFF5247),
+        accentColor = Color(0xFFEB261E),
+        secondaryAccent = Color(0xFFF0F2F5),
+        glowColor = Color(0x60EB261E),
+        shapeType = ButtonShapeType.PILL,
+        cornerRadiusDp = 24.dp,
+        borderWidthDp = 1.dp,
+        hasShadow = true,
+        shadowElevationDp = 4.dp,
+        pressAnimation = PressAnimationType.DEEP_SINK,
+        statusBarDarkIcons = false,
+        isNothingDossier = true
+    )
+
+    /**
+     * 8. Swiss Bauhaus Dossier (Architectural Card Layers & Dot Grid)
+     * Inspired directly by uploaded image: 4fb1d4d7f039bafbc4d7aab11f49ae7f.jpg
+     */
+    val BauhausDossier = ThemePalette(
+        id = ThemeId.BAUHAUS_DOSSIER,
+        name = "Swiss Bauhaus Dossier",
+        subtitle = "Archival warm linen, cadmium vermilion, cobalt & graphic grid",
+        category = "Modern Art",
+        isDark = false,
+        backgroundBrush = Brush.verticalGradient(
+            listOf(Color(0xFFF6F2EA), Color(0xFFEFE8DD), Color(0xFFE5DDD0))
+        ),
+        backgroundColor = Color(0xFFF6F2EA),
+        surfaceColor = Color(0xFFE8E0D2),
+        cardBackground = Color(0xFFFFFFFF),
+        screenBackground = Color(0xFFFFFFFF),
+        screenBorderColor = Color(0xFF1A1918),
+        screenTextColor = Color(0xFF161514),
+        screenExpressionColor = Color(0xFF6A6763),
+        screenPreviewColor = Color(0xFFE03A2B),
+        cursorColor = Color(0xFFE03A2B),
+        displayFont = DisplayFontType.MODERN_SANS,
+        numberButtonBg = Color(0xFFFFFFFF),
+        numberButtonText = Color(0xFF161514),
+        numberButtonBorder = Color(0xFF1A1918),
+        operatorButtonBg = Color(0xFFE03A2B),
+        operatorButtonText = Color.White,
+        operatorButtonBorder = Color(0xFF1A1918),
+        functionButtonBg = Color(0xFF2563EB),
+        functionButtonText = Color.White,
+        functionButtonBorder = Color(0xFF1A1918),
+        equalsButtonBrush = Brush.linearGradient(
+            listOf(Color(0xFFF59E0B), Color(0xFFD97706))
+        ),
+        equalsButtonText = Color(0xFF161514),
+        equalsButtonBorder = Color(0xFF1A1918),
+        accentColor = Color(0xFFE03A2B),
+        secondaryAccent = Color(0xFF2563EB),
+        glowColor = Color(0x40E03A2B),
+        shapeType = ButtonShapeType.SQUIRCLE,
+        cornerRadiusDp = 16.dp,
+        borderWidthDp = 1.5.dp,
+        hasShadow = true,
+        isBrutalistShadow = true,
+        brutalistShadowColor = Color(0x35000000),
+        shadowElevationDp = 4.dp,
+        pressAnimation = PressAnimationType.BOUNCE,
+        statusBarDarkIcons = true,
+        isBauhausDossier = true
+    )
+
+    /**
+     * 9. Terracotta Studio (Matte Clay Body & Glossy Obsidian OLED Header)
+     * Inspired directly by uploaded image: 81338928da9cca53b984614cacd15868.jpg
+     */
+    val TerracottaStudio = ThemePalette(
+        id = ThemeId.TERRACOTTA_STUDIO,
+        name = "Terracotta Studio",
+        subtitle = "Tuscan terracotta body, glazed porcelain keys & obsidian OLED header",
+        category = "Minimal & Aesthetic",
+        isDark = true,
+        backgroundBrush = Brush.verticalGradient(
+            listOf(Color(0xFFC36B56), Color(0xFFB55D48), Color(0xFFA14C38))
+        ),
+        backgroundColor = Color(0xFFB55D48),
+        surfaceColor = Color(0x38000000),
+        cardBackground = Color(0xFF964330),
+        screenBackground = Color(0xFF0E0F12),
+        screenBorderColor = Color(0xFF2D3037),
+        screenTextColor = Color(0xFFFFF9F5),
+        screenExpressionColor = Color(0xFFB0A49E),
+        screenPreviewColor = Color(0xFFFFAB91),
+        cursorColor = Color(0xFFFFF9F5),
+        displayFont = DisplayFontType.DIGITAL_LCD,
+        numberButtonBg = Color(0xFFFAF7F2),
+        numberButtonText = Color(0xFF281F1C),
+        numberButtonBorder = Color(0xFFE4D6CA),
+        operatorButtonBg = Color(0xFF8F3928),
+        operatorButtonText = Color(0xFFFFF5F0),
+        operatorButtonBorder = Color(0xFF6E281A),
+        functionButtonBg = Color(0xFFD4816E),
+        functionButtonText = Color(0xFF381B14),
+        functionButtonBorder = Color(0xFFBC6B59),
+        equalsButtonBrush = Brush.linearGradient(
+            listOf(Color(0xFF23262B), Color(0xFF141619))
+        ),
+        equalsButtonText = Color(0xFFFFF9F5),
+        equalsButtonBorder = Color(0xFF3E434D),
+        accentColor = Color(0xFFC36B56),
+        secondaryAccent = Color(0xFF23262B),
+        glowColor = Color(0x40C36B56),
+        shapeType = ButtonShapeType.CIRCLE,
+        cornerRadiusDp = 28.dp,
+        borderWidthDp = 1.dp,
+        hasShadow = true,
+        shadowElevationDp = 4.dp,
+        pressAnimation = PressAnimationType.DEEP_SINK,
+        statusBarDarkIcons = false,
+        isTerracottaStudio = true
+    )
+
     val allThemes: List<ThemePalette> = listOf(
-        // Default Premier Themes
+        // Featured Exact User Uploads & Studio Hardware Themes
+        RetroCircuitRed,
+        NothingDossier,
+        BauhausDossier,
+        TerracottaStudio,
+
+        // Featured Premier Themes
         BatmanDarkKnight,
+        GirlMathPastel,
+        NekoMochiCat,
+        NekoMochiDark,
+        Y2kGlossyPop,
+        PicoKawaiiPixel,
         IronManMark85,
         IronManStealth,
         IronManSilverCenturion,

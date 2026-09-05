@@ -42,6 +42,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -51,12 +53,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.domain.LanguageStrings
 import com.example.model.CalculatorMode
+import com.example.model.ThemeId
+import com.example.model.toToolTheme
 import com.example.ui.components.AgeCalculatorView
 import com.example.ui.components.AiMathCopilotView
 import com.example.ui.components.BatmanLogoIcon
 import com.example.ui.components.BatmanScreenBackground
 import com.example.ui.components.ArcReactorIcon
 import com.example.ui.components.IronManScreenBackground
+import com.example.ui.components.KawaiiScreenBackground
+import com.example.ui.components.StudioScreenBackground
 import com.example.ui.components.BmiCalculatorView
 import com.example.ui.components.CalculationChainsView
 import com.example.ui.components.CalculatorDisplay
@@ -75,6 +81,7 @@ import com.example.ui.components.SettingsSheet
 import com.example.ui.components.StandardKeypad
 import com.example.ui.components.TipSplitterView
 import com.example.ui.components.UnitConverterView
+import com.example.ui.components.WorksheetTapeView
 import com.example.ui.viewmodel.CalculatorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -95,6 +102,9 @@ fun CalculatorScreen(
     ) {
         viewModel.getEffectiveTheme(uiState)
     }
+
+    // High-contrast palette for tools in the "More" section when using light/pastel themes
+    val toolTheme = remember(theme) { theme.toToolTheme() }
     val haptics = LocalHapticFeedback.current
 
     val settingsSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -115,11 +125,20 @@ fun CalculatorScreen(
         ) {
             if (theme.hasBatSignal) {
                 BatmanScreenBackground(modifier = Modifier.fillMaxSize())
-            }
-            if (theme.hasArcReactor) {
+            } else if (theme.hasArcReactor) {
                 IronManScreenBackground(
                     modifier = Modifier.fillMaxSize(),
                     suitType = theme.ironManSuit ?: com.example.model.IronManSuitType.MARK_85_CLASSIC
+                )
+            } else if (theme.isGirlMath || theme.isNekoMochi || theme.isY2kGlossy || theme.isPixelArt) {
+                KawaiiScreenBackground(
+                    theme = theme,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else if (theme.isRetroCircuit || theme.isNothingDossier || theme.isBauhausDossier || theme.isTerracottaStudio) {
+                StudioScreenBackground(
+                    theme = theme,
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 
@@ -140,6 +159,22 @@ fun CalculatorScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val topBarTextColor = if (theme.isDark) {
+                            theme.screenTextColor
+                        } else {
+                            if (theme.isNekoMochi || theme.isGirlMath) Color(0xFF3E1E28) else Color(0xFF1E293B)
+                        }
+                        val topBarBadgeBg = if (theme.isDark) {
+                            theme.surfaceColor
+                        } else {
+                            if (theme.isNekoMochi) Color(0xFFFFD6E0) else theme.surfaceColor
+                        }
+                        val topBarBadgeText = if (theme.isDark) {
+                            theme.screenExpressionColor
+                        } else {
+                            if (theme.isNekoMochi || theme.isGirlMath) Color(0xFF5A2534) else Color(0xFF334155)
+                        }
+
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -155,6 +190,52 @@ fun CalculatorScreen(
                                     glowColor = theme.accentColor,
                                     showOuterTabs = false
                                 )
+                            } else if (theme.isGirlMath) {
+                                Text(
+                                    text = "♡",
+                                    color = theme.accentColor,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            } else if (theme.isNekoMochi) {
+                                Text(
+                                    text = "🐾",
+                                    fontSize = 15.sp
+                                )
+                            } else if (theme.isY2kGlossy) {
+                                Text(
+                                    text = "✨",
+                                    fontSize = 15.sp
+                                )
+                            } else if (theme.isPixelArt) {
+                                Text(
+                                    text = "👾",
+                                    fontSize = 15.sp
+                                )
+                            } else if (theme.isRetroCircuit) {
+                                Text(
+                                    text = "⚡",
+                                    fontSize = 15.sp
+                                )
+                            } else if (theme.isNothingDossier) {
+                                Text(
+                                    text = "▫",
+                                    color = theme.accentColor,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            } else if (theme.isBauhausDossier) {
+                                Text(
+                                    text = "▣",
+                                    color = theme.accentColor,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            } else if (theme.isTerracottaStudio) {
+                                Text(
+                                    text = "⚪",
+                                    fontSize = 14.sp
+                                )
                             } else {
                                 Surface(
                                     shape = CircleShape,
@@ -165,20 +246,21 @@ fun CalculatorScreen(
 
                             Text(
                                 text = "CALC +",
-                                color = theme.screenTextColor,
+                                color = topBarTextColor,
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.Bold
                             )
 
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
-                                color = theme.surfaceColor
+                                color = topBarBadgeBg,
+                                border = if (!theme.isDark && theme.isNekoMochi) androidx.compose.foundation.BorderStroke(0.8.dp, Color(0xFFFF85A1).copy(alpha = 0.5f)) else null
                             ) {
                                 Text(
                                     text = theme.name,
-                                    color = theme.screenExpressionColor,
+                                    color = topBarBadgeText,
                                     fontSize = 11.sp,
-                                    fontWeight = FontWeight.Medium,
+                                    fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
                             }
@@ -189,14 +271,14 @@ fun CalculatorScreen(
                             onClick = { viewModel.setShowSettingsSheet(true) },
                             modifier = Modifier
                                 .clip(CircleShape)
-                                .background(theme.surfaceColor)
+                                .background(topBarBadgeBg)
                                 .size(36.dp)
                                 .testTag("btn_settings")
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Settings,
                                 contentDescription = "Settings & Appearance",
-                                tint = theme.screenTextColor,
+                                tint = topBarTextColor,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -217,9 +299,24 @@ fun CalculatorScreen(
 
                         mainModes.forEach { (modeItem, label) ->
                             val isSelected = uiState.mode == modeItem
+                            val tabBg = when {
+                                isSelected -> theme.accentColor
+                                !theme.isDark -> if (theme.isNekoMochi) Color(0xFFFFF0F3) else theme.surfaceColor
+                                else -> theme.surfaceColor
+                            }
+                            val tabBorder = if (!isSelected && !theme.isDark) {
+                                androidx.compose.foundation.BorderStroke(1.dp, if (theme.isNekoMochi) Color(0xFFFFB5C5) else theme.accentColor.copy(alpha = 0.3f))
+                            } else null
+                            val tabTextColor = when {
+                                isSelected -> if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White
+                                !theme.isDark -> if (theme.isNekoMochi || theme.isGirlMath) Color(0xFF4A202D) else Color(0xFF1E293B)
+                                else -> theme.screenTextColor.copy(alpha = 0.88f)
+                            }
+
                             Surface(
-                                color = if (isSelected) theme.accentColor else theme.surfaceColor,
+                                color = tabBg,
                                 shape = RoundedCornerShape(12.dp),
+                                border = tabBorder,
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable { viewModel.setMode(modeItem) }
@@ -227,7 +324,7 @@ fun CalculatorScreen(
                             ) {
                                 Text(
                                     text = label,
-                                    color = if (isSelected) theme.backgroundColor else theme.screenTextColor,
+                                    color = tabTextColor,
                                     fontSize = 13.sp,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -242,10 +339,24 @@ fun CalculatorScreen(
                             CalculatorMode.GST_CALCULATOR,
                             CalculatorMode.SCIENTIFIC
                         )
+                        val moreTabBg = when {
+                            isMoreSelected -> theme.accentColor
+                            !theme.isDark -> if (theme.isNekoMochi) Color(0xFFFFF0F3) else theme.surfaceColor
+                            else -> theme.surfaceColor
+                        }
+                        val moreTabBorder = if (!isMoreSelected && !theme.isDark) {
+                            androidx.compose.foundation.BorderStroke(1.dp, if (theme.isNekoMochi) Color(0xFFFFB5C5) else theme.accentColor.copy(alpha = 0.3f))
+                        } else null
+                        val moreTabTextColor = when {
+                            isMoreSelected -> if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White
+                            !theme.isDark -> if (theme.isNekoMochi || theme.isGirlMath) Color(0xFF4A202D) else Color(0xFF1E293B)
+                            else -> theme.screenTextColor.copy(alpha = 0.88f)
+                        }
 
                         Surface(
-                            color = if (isMoreSelected) theme.accentColor else theme.surfaceColor,
+                            color = moreTabBg,
                             shape = RoundedCornerShape(12.dp),
+                            border = moreTabBorder,
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable { viewModel.setShowMoreModesSheet(true) }
@@ -258,7 +369,7 @@ fun CalculatorScreen(
                             ) {
                                 Text(
                                     text = if (isMoreSelected) uiState.mode.shortName else LanguageStrings.modeMore(uiState.currentLanguage),
-                                    color = if (isMoreSelected) theme.backgroundColor else theme.screenTextColor,
+                                    color = moreTabTextColor,
                                     fontSize = 13.sp,
                                     fontWeight = if (isMoreSelected) FontWeight.Bold else FontWeight.Medium
                                 )
@@ -266,7 +377,7 @@ fun CalculatorScreen(
                                 Icon(
                                     imageVector = Icons.Default.MoreHoriz,
                                     contentDescription = "More modes",
-                                    tint = if (isMoreSelected) theme.backgroundColor else theme.screenTextColor,
+                                    tint = moreTabTextColor,
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -335,7 +446,7 @@ fun CalculatorScreen(
 
                             CalculatorMode.GST_CALCULATOR -> {
                                 GstCalculatorView(
-                                    theme = theme,
+                                    theme = toolTheme,
                                     amountInput = uiState.gstAmountInput,
                                     calculationType = uiState.gstCalculationType,
                                     selectedSlabId = uiState.gstSelectedSlabId,
@@ -408,7 +519,7 @@ fun CalculatorScreen(
 
                             CalculatorMode.AGE_CALCULATOR -> {
                                 AgeCalculatorView(
-                                    theme = theme,
+                                    theme = toolTheme,
                                     birthDateTime = uiState.ageBirthDateTime,
                                     targetDateTime = uiState.ageTargetDateTime,
                                     currentPersonName = uiState.ageCurrentPersonName,
@@ -428,7 +539,7 @@ fun CalculatorScreen(
 
                             CalculatorMode.BMI_CALCULATOR -> {
                                 BmiCalculatorView(
-                                    theme = theme,
+                                    theme = toolTheme,
                                     weightInput = uiState.bmiWeightInput,
                                     heightInput = uiState.bmiHeightInput,
                                     ageInput = uiState.bmiAgeInput,
@@ -445,7 +556,7 @@ fun CalculatorScreen(
 
                             CalculatorMode.CURRENCY_CONVERTER -> {
                                 RealCurrencyConverterView(
-                                    theme = theme,
+                                    theme = toolTheme,
                                     fromCode = uiState.currencyFromCode,
                                     toCode = uiState.currencyToCode,
                                     inputAmount = uiState.currencyInput,
@@ -466,7 +577,7 @@ fun CalculatorScreen(
 
                             CalculatorMode.EMI_LOAN -> {
                                 EmiCalculatorView(
-                                    theme = theme,
+                                    theme = toolTheme,
                                     principalInput = uiState.emiPrincipalInput,
                                     interestRateInput = uiState.emiInterestRateInput,
                                     tenureYearsInput = uiState.emiTenureInput,
@@ -502,7 +613,7 @@ fun CalculatorScreen(
                                     )
 
                                     ProgrammerKeypad(
-                                        theme = theme,
+                                        theme = toolTheme,
                                         value = uiState.progValue,
                                         activeBase = uiState.progBase,
                                         wordSize = uiState.progWordSize,
@@ -521,7 +632,7 @@ fun CalculatorScreen(
 
                             CalculatorMode.UNIT_CONVERTER -> {
                                 UnitConverterView(
-                                    theme = theme,
+                                    theme = toolTheme,
                                     category = uiState.convCategory,
                                     fromUnit = uiState.convFromUnit,
                                     toUnit = uiState.convToUnit,
@@ -538,7 +649,7 @@ fun CalculatorScreen(
 
                             CalculatorMode.TIP_SPLIT -> {
                                 TipSplitterView(
-                                    theme = theme,
+                                    theme = toolTheme,
                                     billInput = uiState.tipBillInput,
                                     tipPercent = uiState.tipPercent,
                                     peopleCount = uiState.tipPeopleCount,
@@ -554,14 +665,14 @@ fun CalculatorScreen(
 
                             CalculatorMode.ENGINEERING -> {
                                 EngineeringCalculatorView(
-                                    theme = theme,
+                                    theme = toolTheme,
                                     modifier = Modifier.padding(vertical = 4.dp)
                                 )
                             }
 
                             CalculatorMode.CUSTOM_BUILDER -> {
                                 CustomCalculatorBuilderView(
-                                    theme = theme,
+                                    theme = toolTheme,
                                     calculatorsList = uiState.customCalculators,
                                     activeCalculator = uiState.activeCustomCalculator,
                                     onSelectCalculator = { viewModel.selectCustomCalculator(it) },
@@ -573,7 +684,7 @@ fun CalculatorScreen(
 
                             CalculatorMode.CALCULATION_CHAINS -> {
                                 CalculationChainsView(
-                                    theme = theme,
+                                    theme = toolTheme,
                                     chainsList = uiState.calculationChains,
                                     activeChain = uiState.activeCalculationChain,
                                     onSelectChain = { viewModel.selectCalculationChain(it) },
@@ -583,9 +694,23 @@ fun CalculatorScreen(
 
                             CalculatorMode.AI_COPILOT -> {
                                 AiMathCopilotView(
-                                    theme = theme,
+                                    theme = toolTheme,
                                     onNavigateMode = { viewModel.setMode(it) },
                                     onLoadToExpression = { viewModel.onLoadCopilotExpression(it) },
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+
+                            CalculatorMode.WORKSHEET_TAPE -> {
+                                WorksheetTapeView(
+                                    theme = toolTheme,
+                                    documents = uiState.worksheetDocuments,
+                                    activeDocument = uiState.activeWorksheetDocument,
+                                    onSaveDocument = { viewModel.saveWorksheetDocument(it) },
+                                    onSelectDocument = { viewModel.selectWorksheetDocument(it) },
+                                    onDeleteDocument = { viewModel.deleteWorksheetDocument(it) },
+                                    onNewDocument = { viewModel.createNewWorksheetDocument() },
+                                    onApplyTemplate = { viewModel.applyWorksheetTemplate(it) },
                                     modifier = Modifier.padding(vertical = 4.dp)
                                 )
                             }
@@ -598,7 +723,7 @@ fun CalculatorScreen(
         // Settings & Appearance Bottom Sheet
         if (uiState.showSettingsSheet) {
             SettingsSheet(
-                activeTheme = theme,
+                activeTheme = toolTheme,
                 onSelectTheme = { viewModel.setTheme(it) },
                 customAccentColor = uiState.customAccentColor,
                 onSelectAccentColor = { viewModel.setCustomAccentColor(it) },
@@ -623,6 +748,7 @@ fun CalculatorScreen(
                 isHapticsEnabled = uiState.isHapticsEnabled,
                 onToggleHaptics = { viewModel.toggleHaptics() },
                 onResetAppearance = { viewModel.resetAppearanceCustomizations() },
+                onResetAllSettings = { viewModel.resetAllSettingsToDefaults() },
                 onDismiss = { viewModel.setShowSettingsSheet(false) },
                 sheetState = settingsSheetState
             )
@@ -632,7 +758,7 @@ fun CalculatorScreen(
         if (uiState.showMoreModesSheet) {
             MoreModesSheet(
                 activeMode = uiState.mode,
-                theme = theme,
+                theme = toolTheme,
                 onSelectMode = { viewModel.setMode(it) },
                 onDismiss = { viewModel.setShowMoreModesSheet(false) },
                 sheetState = moreModesSheetState
@@ -643,7 +769,7 @@ fun CalculatorScreen(
         if (uiState.showHistorySheet) {
             HistorySheet(
                 historyList = historyList,
-                theme = theme,
+                theme = toolTheme,
                 searchQuery = uiState.historySearchQuery,
                 onSearchQueryChange = { viewModel.setHistorySearchQuery(it) },
                 onlyFavorites = uiState.historyOnlyFavorites,
@@ -662,7 +788,7 @@ fun CalculatorScreen(
         if (uiState.showDecimalConverterSheet) {
             DecimalConverterSheet(
                 targetValue = uiState.decimalConverterTarget,
-                theme = theme,
+                theme = toolTheme,
                 onUseValue = { selectedVal ->
                     viewModel.setShowDecimalConverterSheet(false)
                 },

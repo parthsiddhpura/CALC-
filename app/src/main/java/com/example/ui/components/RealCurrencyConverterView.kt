@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -223,7 +224,7 @@ fun RealCurrencyConverterView(
                         Icon(
                             imageVector = Icons.Default.SwapVert,
                             contentDescription = "Swap Currencies",
-                            tint = theme.backgroundColor,
+                            tint = if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -475,6 +476,7 @@ private fun CurrencyCardRow(
             Surface(
                 color = theme.screenBackground,
                 shape = RoundedCornerShape(10.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, theme.screenBorderColor.copy(alpha = 0.5f)),
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
                     .clickable { onClickCurrency() }
@@ -525,6 +527,8 @@ private fun CurrencyCardRow(
                         textAlign = TextAlign.End
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = theme.screenTextColor,
+                        unfocusedTextColor = theme.screenTextColor,
                         focusedBorderColor = theme.accentColor,
                         unfocusedBorderColor = Color.Transparent
                     )

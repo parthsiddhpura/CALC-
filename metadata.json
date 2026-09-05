@@ -1,6 +1,6 @@
 {
   "name": "CALC +",
-  "description": "CALC + is a powerful, customizable calculator featuring standard percentage operations, AI-driven custom calculator synthesis with real-time internet data, universal unit conversions, calculation chains, 49 tactile themes including Neumorphic Ice, Obsidian Studio, Kawaii Marshmallow Clay, Retro Typewriter, and Industrial CRT modes.",
+  "description": "CALC + is a powerful, customizable calculator featuring animated studio themes, interactive Worksheet & Paper Tape with draggable sizing, unit conversions, and AI math tools.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

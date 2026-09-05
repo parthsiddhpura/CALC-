@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +50,10 @@ import com.example.model.ConversionUnit
 import com.example.model.ThemePalette
 import com.example.model.UnitCategory
 import com.example.model.UnitConverterData
+import com.example.model.onCardColor
+import com.example.model.onCardSubtextColor
+import com.example.model.onSurfaceSubtextColor
+import com.example.model.onSurfaceTextColor
 import java.util.Locale
 
 @Composable
@@ -88,11 +93,16 @@ fun UnitConverterView(
                 Surface(
                     color = if (isSelected) theme.accentColor else theme.surfaceColor,
                     shape = RoundedCornerShape(12.dp),
+                    border = if (!isSelected && theme.surfaceColor.luminance() > 0.45f) {
+                        androidx.compose.foundation.BorderStroke(1.dp, theme.accentColor.copy(alpha = 0.35f))
+                    } else null,
                     modifier = Modifier.clickable { onCategorySelect(cat) }
                 ) {
                     Text(
                         text = cat.displayName,
-                        color = if (isSelected) theme.backgroundColor else theme.screenExpressionColor,
+                        color = if (isSelected) {
+                            if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White
+                        } else theme.onSurfaceTextColor,
                         fontSize = 13.sp,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
@@ -116,7 +126,7 @@ fun UnitConverterView(
                 ) {
                     Text(
                         text = "FROM",
-                        color = theme.screenExpressionColor,
+                        color = theme.onSurfaceSubtextColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
@@ -155,7 +165,7 @@ fun UnitConverterView(
                                     text = {
                                         Text(
                                             text = "${unit.name} (${unit.symbol})",
-                                            color = theme.screenTextColor,
+                                            color = theme.onCardColor,
                                             fontWeight = if (unit == fromUnit) FontWeight.Bold else FontWeight.Normal
                                         )
                                     },
@@ -173,7 +183,7 @@ fun UnitConverterView(
 
                 Text(
                     text = inputValue.ifEmpty { "0" },
-                    color = theme.screenTextColor,
+                    color = theme.onSurfaceTextColor,
                     fontSize = 38.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
@@ -196,7 +206,7 @@ fun UnitConverterView(
                 Icon(
                     imageVector = Icons.Default.SwapVert,
                     contentDescription = "Swap units",
-                    tint = theme.backgroundColor
+                    tint = if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White
                 )
             }
         }
@@ -216,7 +226,7 @@ fun UnitConverterView(
                 ) {
                     Text(
                         text = "TO (RESULT)",
-                        color = theme.screenExpressionColor,
+                        color = theme.onSurfaceSubtextColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
@@ -255,7 +265,7 @@ fun UnitConverterView(
                                     text = {
                                         Text(
                                             text = "${unit.name} (${unit.symbol})",
-                                            color = theme.screenTextColor,
+                                            color = theme.onCardColor,
                                             fontWeight = if (unit == toUnit) FontWeight.Bold else FontWeight.Normal
                                         )
                                     },
@@ -459,7 +469,7 @@ fun TipSplitterView(
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "PER PERSON SHARE (₹)",
-                        color = theme.screenExpressionColor,
+                        color = theme.onSurfaceSubtextColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
@@ -477,7 +487,7 @@ fun TipSplitterView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp)
-                        .background(theme.cardBackground)
+                        .background(if (theme.surfaceColor.luminance() > 0.45f) theme.accentColor.copy(alpha = 0.25f) else theme.cardBackground)
                 )
 
                 // Breakdown Row (Tip & Total)
@@ -488,12 +498,12 @@ fun TipSplitterView(
                     Column {
                         Text(
                             text = "Tip (${tipPercent.toInt()}%)",
-                            color = theme.screenExpressionColor,
+                            color = theme.onSurfaceSubtextColor,
                             fontSize = 12.sp
                         )
                         Text(
                             text = "₹${String.format(Locale.US, "%.2f", tipAmount)}",
-                            color = theme.screenTextColor,
+                            color = theme.onSurfaceTextColor,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace
@@ -503,7 +513,7 @@ fun TipSplitterView(
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = "Total with Tip",
-                            color = theme.screenExpressionColor,
+                            color = theme.onSurfaceSubtextColor,
                             fontSize = 12.sp
                         )
                         Text(
@@ -520,14 +530,19 @@ fun TipSplitterView(
 
         // Bill Amount Input Card
         Surface(
-            color = theme.surfaceColor,
+            color = if (theme.surfaceColor.luminance() > 0.45f) theme.cardBackground else theme.surfaceColor,
             shape = RoundedCornerShape(14.dp),
+            border = if (theme.surfaceColor.luminance() > 0.45f) {
+                androidx.compose.foundation.BorderStroke(1.5.dp, theme.accentColor.copy(alpha = 0.6f))
+            } else {
+                androidx.compose.foundation.BorderStroke(1.dp, theme.screenBorderColor.copy(alpha = 0.4f))
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Text(
                     text = "BILL AMOUNT (₹)",
-                    color = theme.screenExpressionColor,
+                    color = theme.onSurfaceSubtextColor,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace
@@ -535,10 +550,11 @@ fun TipSplitterView(
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = if (billInput.isNotEmpty()) "₹$billInput" else "₹0.00",
-                    color = theme.screenTextColor,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace
+                    color = theme.onCardColor,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.testTag("tip_bill_amount_text")
                 )
             }
         }
@@ -556,7 +572,7 @@ fun TipSplitterView(
                 ) {
                     Text(
                         text = "TIP PERCENTAGE",
-                        color = theme.screenExpressionColor,
+                        color = theme.onSurfaceSubtextColor,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
@@ -582,13 +598,18 @@ fun TipSplitterView(
                         Surface(
                             color = if (isSelected) theme.accentColor else theme.cardBackground,
                             shape = RoundedCornerShape(8.dp),
+                            border = if (!isSelected && theme.surfaceColor.luminance() > 0.45f) {
+                                androidx.compose.foundation.BorderStroke(1.dp, theme.accentColor.copy(alpha = 0.35f))
+                            } else null,
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable { onTipPercentChange(pct) }
                         ) {
                             Text(
                                 text = "${pct.toInt()}%",
-                                color = if (isSelected) theme.backgroundColor else theme.screenTextColor,
+                                color = if (isSelected) {
+                                    if (theme.accentColor.luminance() > 0.6f) Color(0xFF211118) else Color.White
+                                } else theme.onCardColor,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(vertical = 8.dp),
@@ -608,7 +629,7 @@ fun TipSplitterView(
                     colors = SliderDefaults.colors(
                         thumbColor = theme.accentColor,
                         activeTrackColor = theme.accentColor,
-                        inactiveTrackColor = theme.cardBackground
+                        inactiveTrackColor = if (theme.surfaceColor.luminance() > 0.45f) theme.accentColor.copy(alpha = 0.25f) else theme.cardBackground
                     )
                 )
             }
@@ -630,14 +651,14 @@ fun TipSplitterView(
                 Column {
                     Text(
                         text = "SPLIT AMONG",
-                        color = theme.screenExpressionColor,
+                        color = theme.onSurfaceSubtextColor,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
                     )
                     Text(
                         text = "$peopleCount ${if (peopleCount == 1) "person" else "people"}",
-                        color = theme.screenTextColor,
+                        color = theme.onSurfaceTextColor,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -656,7 +677,7 @@ fun TipSplitterView(
                         Icon(
                             imageVector = Icons.Default.Remove,
                             contentDescription = "Decrease people",
-                            tint = theme.screenTextColor
+                            tint = theme.onCardColor
                         )
                     }
 
@@ -679,7 +700,7 @@ fun TipSplitterView(
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Increase people",
-                            tint = theme.screenTextColor
+                            tint = theme.onCardColor
                         )
                     }
                 }
